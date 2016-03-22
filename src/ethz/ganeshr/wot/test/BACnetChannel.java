@@ -43,7 +43,6 @@ import de.thingweb.thing.Property;
 
 public class BACnetChannel {
 	private LocalDevice localDevice;
-	ThingDescription rootThing = null;
 	List<ThingDescription> discoveredThings = new ArrayList<ThingDescription>();
 
 	public void open() throws Exception {
@@ -60,8 +59,7 @@ public class BACnetChannel {
 
 	}
 
-	public List<ThingDescription> discover(long timeout, ThingDescription root) throws Exception {
-		rootThing = root;
+	public List<ThingDescription> discover(long timeout) throws Exception {
 		discoveredThings.clear();
 		localDevice.sendGlobalBroadcast(new WhoIsRequest());
 		Thread.sleep(timeout);
@@ -155,17 +153,13 @@ public class BACnetChannel {
 	
 	private void addThing(RemoteDevice device, String objectName, ObjectIdentifier oid){
 		String deviceName = device.getName();
-		ArrayList<Protocol> protocols = new ArrayList<Protocol>();
-		Metadata rootMetadata =  rootThing.getMetadata();
-		Map<String, Protocol> rootProtocols = rootMetadata.getProtocols();
-		Map<String, Protocol> childProtocols = new HashMap<String, Protocol>();
-		for(String key :rootProtocols.keySet()){
-			Protocol root = rootProtocols.get(key);
-			String uri = root.uri + deviceName + "/" + objectName;
-			Protocol protocol = new Protocol(uri, root.priority);
-			childProtocols.put(key, protocol);
-		}
-		Metadata meta = new Metadata(objectName, childProtocols, rootMetadata.getEncodings());
+		
+		Map<String, Protocol> protocols  = new HashMap<String, Protocol>();
+		ArrayList<String> encodings = new ArrayList<>();
+		encodings.add("JSON");
+		protocols.put("CoAP", new Protocol("coap://localhost/thing", 1));
+		protocols.put("HTTP", new Protocol("http://localhost/thing", 2));
+		Metadata meta = new Metadata(objectName, protocols, encodings);
 		
 		List<PropertyTypeDefinition> properties =  ObjectProperties.getRequiredPropertyTypeDefinitions(oid.getObjectType());
 		

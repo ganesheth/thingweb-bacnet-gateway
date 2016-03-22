@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import de.thingweb.desc.DescriptionParser;
 import de.thingweb.desc.pojo.InteractionDescription;
+import de.thingweb.desc.pojo.Metadata;
 import de.thingweb.desc.pojo.PropertyDescription;
 import de.thingweb.desc.pojo.ThingDescription;
 import de.thingweb.servient.ServientBuilder;
@@ -31,17 +32,16 @@ public class ServerMain {
 	
 	public ServerMain() throws Exception{
 		System.out.println("Hello");
-		
+		ServientBuilder.getHttpBinding().setPort(80);
 		ServientBuilder.initialize();
 		server = ServientBuilder.newThingServer();
 		//final ThingDescription basicLedDesc = DescriptionParser.fromFile("e:/data/temp/basic_led.jsonld");
 		//ThingInterface basicLed = server.addThing(basicLedDesc);
 		//attachBasicHandlers(basicLed);
 
-		ThingDescription root = DescriptionParser.fromFile("e:/data/temp/server.jsonld");
 		bacnetChannel = new BACnetChannel();
 		bacnetChannel.open();
-		List<ThingDescription> things = bacnetChannel.discover(20000, root);
+		List<ThingDescription> things = bacnetChannel.discover(20000);
 		//bacnet.close();
 		
 		for(ThingDescription thing : things){
