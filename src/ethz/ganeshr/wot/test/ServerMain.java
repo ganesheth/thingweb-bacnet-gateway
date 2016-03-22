@@ -1,0 +1,73 @@
+package ethz.ganeshr.wot.test;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.thingweb.desc.DescriptionParser;
+import de.thingweb.desc.pojo.InteractionDescription;
+import de.thingweb.desc.pojo.PropertyDescription;
+import de.thingweb.desc.pojo.ThingDescription;
+import de.thingweb.servient.ServientBuilder;
+import de.thingweb.servient.ThingInterface;
+import de.thingweb.servient.ThingServer;
+import de.thingweb.servient.impl.ServedThing;
+import de.thingweb.thing.Property;
+import de.thingweb.util.encoding.ContentHelper;
+
+public class ServerMain {
+	
+	public static void main(String[] args) throws Exception {
+		// TODO Auto-generated method stub
+		ServerMain serverMain = new ServerMain();
+		serverMain.start();
+		
+	}
+	
+	private final ThingServer server;
+	private static final Logger log = LoggerFactory.getLogger(ServerMain.class);
+	BACnetChannel bacnetChannel = null;
+	
+	public ServerMain() throws Exception{
+		System.out.println("Hello");
+		
+		ServientBuilder.initialize();
+		server = ServientBuilder.newThingServer();
+		//final ThingDescription basicLedDesc = DescriptionParser.fromFile("e:/data/temp/basic_led.jsonld");
+		//ThingInterface basicLed = server.addThing(basicLedDesc);
+		//attachBasicHandlers(basicLed);
+
+		ThingDescription root = DescriptionParser.fromFile("e:/data/temp/server.jsonld");
+		bacnetChannel = new BACnetChannel();
+		bacnetChannel.open();
+		List<ThingDescription> things = bacnetChannel.discover(20000, root);
+		//bacnet.close();
+		
+		for(ThingDescription thing : things){
+			ThingInterface thingIfc = server.addThing(thing);
+			attachHandler((ServedThing)thingIfc);
+		}
+
+	}
+	
+	public void start() throws Exception{
+		ServientBuilder.start();		
+	}
+	
+	public void attachHandler(ServedThing thing){
+		thing.onPropertyRead((input) -> {
+			Property property = (Property)input;
+			log.info("Got a read");
+			List<InteractionDescription> interactions = thing.getThingModel().getThingDescription().getInteractions();
+			for(InteractionDescription id : interactions){
+				if(id.getName().equals(property.getName()))
+				{
+					String result = bacnetChannel.read((PropertyDescription)id);
+					thing.setProperty(property, result);	
+				}
+			}
+		});
+	}	
+
+}

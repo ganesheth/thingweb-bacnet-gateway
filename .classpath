@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/californium-core-1.0.0-M3.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/element-connector-1.0.0-M3.jar"/>
+	<classpathentry kind="lib" path="lib/exificient-0.9.4.jar"/>
+	<classpathentry kind="lib" path="lib/fluent-hc-4.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-4.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-cache-4.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-osgi-4.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-4.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-nio-4.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpcore-osgi-4.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/httpmime-4.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-annotations-2.3.0.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-core-2.3.3.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-databind-2.3.3.jar"/>
+	<classpathentry kind="lib" path="lib/jcl-over-slf4j-1.7.9.jar"/>
+	<classpathentry kind="lib" path="lib/jose4j-0.4.4.jar"/>
+	<classpathentry kind="lib" path="lib/json-20141113.jar"/>
+	<classpathentry kind="lib" path="lib/jsonld-context.jar"/>
+	<classpathentry kind="lib" path="lib/jsonld-java-0.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/logback-classic-1.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/logback-core-1.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/nanohttpd-2.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.7.18.jar"/>
+	<classpathentry kind="lib" path="lib/thingweb-client.jar"/>
+	<classpathentry kind="lib" path="lib/xercesImpl-2.11.0.jar"/>
+	<classpathentry kind="lib" path="lib/xml-apis-1.4.01.jar"/>
+	<classpathentry kind="lib" path="lib/bacnet4j-3.2.2-doc.jar"/>
+	<classpathentry kind="lib" path="lib/bacnet4j-3.2.2-src.jar"/>
+	<classpathentry kind="lib" path="lib/bacnet4j-3.2.2.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thingweb-client"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thingweb-common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thingweb-discovery"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thingweb-javascript"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thingweb-parser"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thingweb-server"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
