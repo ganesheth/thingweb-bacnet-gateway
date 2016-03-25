@@ -45,10 +45,13 @@ public class ServerMain {
 		//bacnet.close();
 		
 		for(ThingDescription thing : things){
+			if(thing == null)
+				log.error("null thing!");
+			else{
 			ThingInterface thingIfc = server.addThing(thing);
 			attachHandler((ServedThing)thingIfc);
+			}
 		}
-
 	}
 	
 	public void start() throws Exception{
@@ -59,14 +62,9 @@ public class ServerMain {
 		thing.onPropertyRead((input) -> {
 			Property property = (Property)input;
 			log.info("Got a read");
-			List<InteractionDescription> interactions = thing.getThingModel().getThingDescription().getInteractions();
-			for(InteractionDescription id : interactions){
-				if(id.getName().equals(property.getName()))
-				{
-					String result = bacnetChannel.read((PropertyDescription)id);
-					thing.setProperty(property, result);	
-				}
-			}
+			String result = bacnetChannel.read(property.getDescription());
+			thing.setProperty(property, result);	
+			
 		});
 	}	
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.serotonin.bacnet4j.LocalDevice;
 import com.serotonin.bacnet4j.RemoteDevice;
@@ -33,6 +34,7 @@ import com.serotonin.bacnet4j.type.primitive.UnsignedInteger;
 import com.serotonin.bacnet4j.util.PropertyReferences;
 import com.serotonin.bacnet4j.util.PropertyValues;
 import com.serotonin.bacnet4j.util.RequestUtils;
+import com.sun.tools.javac.util.Pair;
 
 import de.thingweb.desc.pojo.InteractionDescription;
 import de.thingweb.desc.pojo.Metadata;
@@ -44,7 +46,8 @@ import de.thingweb.thing.Property;
 public class BACnetChannel {
 	private LocalDevice localDevice;
 	List<ThingDescription> discoveredThings = new ArrayList<ThingDescription>();
-
+	private List<Pair<String, String>> bacnetContexts = new ArrayList<>();
+	
 	public void open() throws Exception {
 		IpNetwork network = new IpNetworkBuilder().build();
 		Transport transport = new DefaultTransport(network);
@@ -53,6 +56,8 @@ public class BACnetChannel {
 		localDevice = new LocalDevice(1234, transport);
 		localDevice.initialize();
 		localDevice.getEventHandler().addListener(new Listener());
+		Pair<String,String> context= new Pair<>("BACnet", "http://bacowl.sourceforge.net/2012/bacnet");
+		bacnetContexts.add(context);
 	}
 
 	public void close() {
@@ -154,12 +159,13 @@ public class BACnetChannel {
 	private void addThing(RemoteDevice device, String objectName, ObjectIdentifier oid){
 		String deviceName = device.getName();
 		
-		Map<String, Protocol> protocols  = new HashMap<String, Protocol>();
+		List<String> protocols  = new ArrayList<String>();
 		ArrayList<String> encodings = new ArrayList<>();
 		encodings.add("JSON");
-		protocols.put("CoAP", new Protocol("coap://localhost/thing", 1));
-		protocols.put("HTTP", new Protocol("http://localhost/thing", 2));
-		Metadata meta = new Metadata(objectName, protocols, encodings);
+		//protocols.add("coap://localhost/thing");
+		//protocols.add("http://localhost/thing");
+		String name = device.getName() + "/" + objectName;
+		Metadata meta = new Metadata(name, protocols, encodings, null);
 		
 		List<PropertyTypeDefinition> properties =  ObjectProperties.getRequiredPropertyTypeDefinitions(oid.getObjectType());
 		
@@ -170,15 +176,19 @@ public class BACnetChannel {
 			String propertyName = pid.toString();
 			boolean isWriteable = ObjectProperties.isCommandable(oid.getObjectType(), pid);
 			String typeName = prop.getClazz().getTypeName();
+			int lastDot = typeName.lastIndexOf(".");
+			typeName =" BACnet:" + typeName.substring(lastDot + 1);
 			ArrayList<String> hrefs = new ArrayList<>();
 			hrefs.add(propertyName);
 			hrefs.add(propertyName);
-			PropertyDescription pd = new PropertyDescription(propertyName, isWriteable, typeName, hrefs, "");
+			PropertyDescription pd = new PropertyDescription(propertyName, propertyName, isWriteable, typeName, hrefs, "BACnet:ObjectProperty");
 			interactions.add(pd);
 			bacnetReferenceMap.put(pd, new DeviceObjectPropertyIdentifier(device, oid, pid));
 		}		
 		
-		ThingDescription thing = new ThingDescription(meta, interactions);
+		ThingDescription thing = new ThingDescription(meta, interactions, "BACnet:BACnetObject");
+		thing.setAdditionalContexts(bacnetContexts);
+		
 		discoveredThings.add(thing);
 	}
 	
@@ -232,6 +242,7 @@ public class BACnetChannel {
 		try {
 			ack = (ReadPropertyAck) sf.get();
 			return ack.getValue().toString();
+			
 		} catch (BACnetException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
