@@ -41,7 +41,7 @@ public class ServerMain {
 
 		bacnetChannel = new BACnetChannel();
 		bacnetChannel.open();
-		List<ThingDescription> things = bacnetChannel.discover(20000);
+		List<ThingDescription> things = bacnetChannel.discover(5000);
 		//bacnet.close();
 		
 		for(ThingDescription thing : things){
