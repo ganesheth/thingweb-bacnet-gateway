@@ -27,7 +27,6 @@
 	<classpathentry kind="lib" path="lib/logback-core-1.1.6.jar"/>
 	<classpathentry kind="lib" path="lib/nanohttpd-2.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.7.18.jar"/>
-	<classpathentry kind="lib" path="lib/thingweb-client.jar"/>
 	<classpathentry kind="lib" path="lib/xercesImpl-2.11.0.jar"/>
 	<classpathentry kind="lib" path="lib/xml-apis-1.4.01.jar"/>
 	<classpathentry kind="lib" path="lib/bacnet4j-3.2.2-doc.jar"/>
