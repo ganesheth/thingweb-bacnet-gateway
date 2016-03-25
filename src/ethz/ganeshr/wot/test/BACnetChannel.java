@@ -169,8 +169,11 @@ public class BACnetChannel {
 			PropertyIdentifier pid = prop.getPropertyIdentifier();
 			String propertyName = pid.toString();
 			boolean isWriteable = ObjectProperties.isCommandable(oid.getObjectType(), pid);
-			String typeName = prop.getClazz().getSimpleName();
-			PropertyDescription pd = new PropertyDescription(propertyName, isWriteable, typeName);
+			String typeName = prop.getClazz().getTypeName();
+			ArrayList<String> hrefs = new ArrayList<>();
+			hrefs.add(propertyName);
+			hrefs.add(propertyName);
+			PropertyDescription pd = new PropertyDescription(propertyName, isWriteable, typeName, hrefs, "");
 			interactions.add(pd);
 			bacnetReferenceMap.put(pd, new DeviceObjectPropertyIdentifier(device, oid, pid));
 		}		
