@@ -34,14 +34,15 @@ import com.serotonin.bacnet4j.type.primitive.UnsignedInteger;
 import com.serotonin.bacnet4j.util.PropertyReferences;
 import com.serotonin.bacnet4j.util.PropertyValues;
 import com.serotonin.bacnet4j.util.RequestUtils;
-import com.sun.tools.javac.util.Pair;
 
+import de.thingweb.desc.pojo.ActionDescription;
 import de.thingweb.desc.pojo.InteractionDescription;
 import de.thingweb.desc.pojo.Metadata;
 import de.thingweb.desc.pojo.PropertyDescription;
 import de.thingweb.desc.pojo.Protocol;
 import de.thingweb.desc.pojo.ThingDescription;
 import de.thingweb.thing.Property;
+import javafx.util.Pair;
 
 public class BACnetChannel {
 	private LocalDevice localDevice;
@@ -75,8 +76,8 @@ public class BACnetChannel {
 
 	}
 
-	public String read(PropertyDescription property) {
-		DeviceObjectPropertyIdentifier dopid = bacnetReferenceMap.get(property);
+	public String read(String propertyUrl) {
+		DeviceObjectPropertyIdentifier dopid = bacnetReferenceMap.get(propertyUrl);
 		return readPropertyValueAsString(dopid.dev, dopid.oid, dopid.pid);
 	}
 
@@ -154,7 +155,7 @@ public class BACnetChannel {
 		public RemoteDevice dev;
 	}
 	
-	private Map<PropertyDescription, DeviceObjectPropertyIdentifier> bacnetReferenceMap = new HashMap<>();
+	private Map<String, DeviceObjectPropertyIdentifier> bacnetReferenceMap = new HashMap<>();
 	
 	private void addThing(RemoteDevice device, String objectName, ObjectIdentifier oid){
 		String deviceName = device.getName();
@@ -181,11 +182,15 @@ public class BACnetChannel {
 			ArrayList<String> hrefs = new ArrayList<>();
 			hrefs.add(propertyName);
 			hrefs.add(propertyName);
-			PropertyDescription pd = new PropertyDescription(propertyName, propertyName, isWriteable, typeName, hrefs, "BACnet:ObjectProperty");
+			CustomPropertyDescription pd = new CustomPropertyDescription(propertyName, propertyName, isWriteable, typeName, hrefs, "BACnet:ObjectProperty");
 			interactions.add(pd);
-			bacnetReferenceMap.put(pd, new DeviceObjectPropertyIdentifier(device, oid, pid));
+			String keyName = name + "/" + propertyName;
+			bacnetReferenceMap.put(keyName, new DeviceObjectPropertyIdentifier(device, oid, pid));
 		}		
-		
+		//if(oid.getObjectType() == ObjectType.command){
+			ActionDescription action = new ActionDescription("_action", "xsd:string", "xsd:string");
+			interactions.add(action);
+		//}
 		ThingDescription thing = new ThingDescription(meta, interactions, "BACnet:BACnetObject");
 		thing.setAdditionalContexts(bacnetContexts);
 		

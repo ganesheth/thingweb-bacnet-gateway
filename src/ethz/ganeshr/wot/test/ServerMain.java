@@ -1,5 +1,6 @@
 package ethz.ganeshr.wot.test;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -14,6 +15,8 @@ import de.thingweb.servient.ServientBuilder;
 import de.thingweb.servient.ThingInterface;
 import de.thingweb.servient.ThingServer;
 import de.thingweb.servient.impl.ServedThing;
+import de.thingweb.thing.Content;
+import de.thingweb.thing.MediaType;
 import de.thingweb.thing.Property;
 import de.thingweb.util.encoding.ContentHelper;
 
@@ -57,15 +60,35 @@ public class ServerMain {
 	public void start() throws Exception{
 		ServientBuilder.start();		
 	}
-	
+	Date dummy;
 	public void attachHandler(ServedThing thing){
 		thing.onPropertyRead((input) -> {
 			Property property = (Property)input;
 			log.info("Got a read");
-			String result = bacnetChannel.read(property.getDescription());
+			String result = "";
+			String propertyName = property.getDescription().getName();
+			if(propertyName.equalsIgnoreCase("_action/status")){
+				Date d = new Date();
+				long i = d.getTime() - dummy.getTime();
+				if(i > 10000)
+					result = "{\"state\":\"done\"}";
+				else
+					result = String.format("{\"state\":\"%d\"}", i);;
+			}
+			else{
+				result = bacnetChannel.read(thing.getName() + "/" + propertyName);
+			}
 			thing.setProperty(property, result);	
 			
 		});
+		
+		thing.onActionInvoke("_action", (input) -> {
+			PropertyDescription subResource = new PropertyDescription("_action/status");
+			thing.addProperty(subResource);
+			dummy = new Date();
+			server.rebindSec(thing.getName(), false);
+			return new Content("{\"state\":\"in_progress\"}".getBytes(), MediaType.APPLICATION_JSON);
+		} );
 	}	
 
 }
