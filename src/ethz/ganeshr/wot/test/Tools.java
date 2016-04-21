@@ -26,9 +26,10 @@
 
 package ethz.ganeshr.wot.test;
 
-import de.thingweb.desc.DescriptionParser;
-import de.thingweb.desc.pojo.ThingDescription;
+import de.thingweb.desc.ThingDescriptionParser;
 import de.thingweb.thing.MediaType;
+import de.thingweb.thing.Thing;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,12 +104,12 @@ public class Tools {
         connection.getInputStream().close();
     }
 
-    public static ThingDescription getThingDescriptionFromFileOrResource(String fname) throws IOException, URISyntaxException {
-        ThingDescription fancyLedDesc;
+    public static Thing getThingDescriptionFromFileOrResource(String fname) throws IOException, URISyntaxException {
+        Thing fancyLedDesc;
         try {
-            fancyLedDesc = DescriptionParser.fromFile(fname);
+            fancyLedDesc = ThingDescriptionParser.fromFile(fname);
         } catch (IOException e) {
-            fancyLedDesc = DescriptionParser.fromBytes(readResource(fname).getBytes());
+            fancyLedDesc = ThingDescriptionParser.fromBytes(readResource(fname).getBytes());
         }
         return fancyLedDesc;
     }

@@ -35,18 +35,15 @@ import com.serotonin.bacnet4j.util.PropertyReferences;
 import com.serotonin.bacnet4j.util.PropertyValues;
 import com.serotonin.bacnet4j.util.RequestUtils;
 
-import de.thingweb.desc.pojo.ActionDescription;
-import de.thingweb.desc.pojo.InteractionDescription;
-import de.thingweb.desc.pojo.Metadata;
-import de.thingweb.desc.pojo.PropertyDescription;
-import de.thingweb.desc.pojo.Protocol;
-import de.thingweb.desc.pojo.ThingDescription;
+import de.thingweb.thing.Action;
+import de.thingweb.thing.Metadata;
 import de.thingweb.thing.Property;
+import de.thingweb.thing.Thing;
 import javafx.util.Pair;
 
 public class BACnetChannel {
 	private LocalDevice localDevice;
-	List<ThingDescription> discoveredThings = new ArrayList<ThingDescription>();
+	List<Thing> discoveredThings = new ArrayList<>();
 	private List<Pair<String, String>> bacnetContexts = new ArrayList<>();
 	
 	public void open() throws Exception {
@@ -65,29 +62,20 @@ public class BACnetChannel {
 
 	}
 
-	public List<ThingDescription> discover(long timeout) throws Exception {
+	public List<Thing> discover(long timeout) throws Exception {
 		discoveredThings.clear();
 		localDevice.sendGlobalBroadcast(new WhoIsRequest());
 		Thread.sleep(timeout);
 		return discoveredThings;
 	}
 
-	public void create(ThingDescription thing) {
 
-	}
 
 	public String read(String propertyUrl) {
 		DeviceObjectPropertyIdentifier dopid = bacnetReferenceMap.get(propertyUrl);
 		return readPropertyValueAsString(dopid.dev, dopid.oid, dopid.pid);
 	}
 
-	public void update(ThingDescription thing) {
-
-	}
-
-	public void delete(ThingDescription thing) {
-
-	}
 	
 
 	class Listener extends DeviceEventAdapter {
@@ -166,11 +154,10 @@ public class BACnetChannel {
 		//protocols.add("coap://localhost/thing");
 		//protocols.add("http://localhost/thing");
 		String name = device.getName() + "/" + objectName;
-		Metadata meta = new Metadata(name, protocols, encodings, null);
 		
 		List<PropertyTypeDefinition> properties =  ObjectProperties.getRequiredPropertyTypeDefinitions(oid.getObjectType());
 		
-		List<InteractionDescription> interactions = new ArrayList<InteractionDescription>();
+		Thing thing = new Thing(name);
 
 		for(PropertyTypeDefinition prop : properties){			
 			PropertyIdentifier pid = prop.getPropertyIdentifier();
@@ -183,16 +170,19 @@ public class BACnetChannel {
 			hrefs.add(propertyName);
 			hrefs.add(propertyName);
 			CustomPropertyDescription pd = new CustomPropertyDescription(propertyName, propertyName, isWriteable, typeName, hrefs, "BACnet:ObjectProperty");
-			interactions.add(pd);
+			thing.addProperty(pd);
 			String keyName = name + "/" + propertyName;
 			bacnetReferenceMap.put(keyName, new DeviceObjectPropertyIdentifier(device, oid, pid));
 		}		
 		//if(oid.getObjectType() == ObjectType.command){
-			ActionDescription action = new ActionDescription("_action", "xsd:string", "xsd:string");
-			interactions.add(action);
+			ArrayList<String> hrefs = new ArrayList<>();
+			hrefs.add("_action");
+			hrefs.add("_action");
+			Action action = Action.getBuilder("_action").setInputType("xsd:string").setOutputType("xsd:string").setHrefs(hrefs).build();
+			thing.addAction(action);
 		//}
-		ThingDescription thing = new ThingDescription(meta, interactions, "BACnet:BACnetObject");
-		thing.setAdditionalContexts(bacnetContexts);
+
+		//thing.getMetadata().setAdditionalContexts(bacnetContexts);
 		
 		discoveredThings.add(thing);
 	}

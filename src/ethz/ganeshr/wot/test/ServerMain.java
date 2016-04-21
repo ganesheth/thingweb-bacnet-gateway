@@ -6,11 +6,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.thingweb.desc.DescriptionParser;
-import de.thingweb.desc.pojo.InteractionDescription;
-import de.thingweb.desc.pojo.Metadata;
-import de.thingweb.desc.pojo.PropertyDescription;
-import de.thingweb.desc.pojo.ThingDescription;
 import de.thingweb.servient.ServientBuilder;
 import de.thingweb.servient.ThingInterface;
 import de.thingweb.servient.ThingServer;
@@ -18,6 +13,7 @@ import de.thingweb.servient.impl.ServedThing;
 import de.thingweb.thing.Content;
 import de.thingweb.thing.MediaType;
 import de.thingweb.thing.Property;
+import de.thingweb.thing.Thing;
 import de.thingweb.util.encoding.ContentHelper;
 
 public class ServerMain {
@@ -44,10 +40,10 @@ public class ServerMain {
 
 		bacnetChannel = new BACnetChannel();
 		bacnetChannel.open();
-		List<ThingDescription> things = bacnetChannel.discover(5000);
+		List<Thing> things = bacnetChannel.discover(5000);
 		//bacnet.close();
 		
-		for(ThingDescription thing : things){
+		for(Thing thing : things){
 			if(thing == null)
 				log.error("null thing!");
 			else{
@@ -66,7 +62,7 @@ public class ServerMain {
 			Property property = (Property)input;
 			log.info("Got a read");
 			String result = "";
-			String propertyName = property.getDescription().getName();
+			String propertyName = property.getName();
 			if(propertyName.equalsIgnoreCase("_action/status")){
 				Date d = new Date();
 				long i = d.getTime() - dummy.getTime();
@@ -83,7 +79,7 @@ public class ServerMain {
 		});
 		
 		thing.onActionInvoke("_action", (input) -> {
-			PropertyDescription subResource = new PropertyDescription("_action/status");
+			Property subResource = Property.getBuilder("").setPropertyType("").build();
 			thing.addProperty(subResource);
 			dummy = new Date();
 			server.rebindSec(thing.getName(), false);
