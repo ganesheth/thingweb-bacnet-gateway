@@ -59,9 +59,9 @@ public class Tools {
 */
 
 		
-		return new String(Files.readAllBytes(Paths.get("e:/data/temp/" + path)), Charset.forName("UTF-8"));
+		//return new String(Files.readAllBytes(Paths.get("e:/data/temp/" + path)), Charset.forName("UTF-8"));
 
-
+        return new String(Files.readAllBytes(Paths.get(uri)), Charset.forName("UTF-8"));
         //return new String(Files.readAllBytes(Paths.get(uri)), Charset.forName("UTF-8"));
     }
 
@@ -109,7 +109,8 @@ public class Tools {
         try {
             fancyLedDesc = ThingDescriptionParser.fromFile(fname);
         } catch (IOException e) {
-            fancyLedDesc = ThingDescriptionParser.fromBytes(readResource(fname).getBytes());
+        	String td = readResource(fname);
+            fancyLedDesc = ThingDescriptionParser.fromBytes(td.getBytes());
         }
         return fancyLedDesc;
     }

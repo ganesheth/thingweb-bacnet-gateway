@@ -1,19 +1,30 @@
 package ethz.ganeshr.wot.test;
 
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.serotonin.bacnet4j.obj.ObjectProperties;
+import com.serotonin.bacnet4j.obj.PropertyTypeDefinition;
+import com.serotonin.bacnet4j.type.enumerated.PropertyIdentifier;
 
 import de.thingweb.servient.ServientBuilder;
 import de.thingweb.servient.ThingInterface;
 import de.thingweb.servient.ThingServer;
 import de.thingweb.servient.impl.ServedThing;
+import de.thingweb.thing.Action;
 import de.thingweb.thing.Content;
+import de.thingweb.thing.HyperMediaLink;
 import de.thingweb.thing.MediaType;
+import de.thingweb.thing.Metadata;
 import de.thingweb.thing.Property;
 import de.thingweb.thing.Thing;
+import de.thingweb.thing.ThingMetadata;
 import de.thingweb.util.encoding.ContentHelper;
 
 public class ServerMain {
@@ -61,9 +72,9 @@ public class ServerMain {
 		thing.onPropertyRead((input) -> {
 			Property property = (Property)input;
 			log.info("Got a read");
-			String result = "";
+			Object result = "";
 			String propertyName = property.getName();
-			if(propertyName.equalsIgnoreCase("_action/status")){
+			if(propertyName.equalsIgnoreCase("_actionSubscribeCOV/status")){
 				Date d = new Date();
 				long i = d.getTime() - dummy.getTime();
 				if(i > 10000)
@@ -78,13 +89,35 @@ public class ServerMain {
 			
 		});
 		
-		thing.onActionInvoke("_action", (input) -> {
-			Property subResource = Property.getBuilder("").setPropertyType("").build();
-			thing.addProperty(subResource);
-			dummy = new Date();
-			server.rebindSec(thing.getName(), false);
-			return new Content("{\"state\":\"in_progress\"}".getBytes(), MediaType.APPLICATION_JSON);
-		} );
+		thing.onPropertyUpdate((p,v)->{
+			Property property = (Property)p;
+			Object value = v;
+			String propertyName = property.getName();
+			bacnetChannel.update(thing.getName() + "/" + propertyName, (String)v);
+		});
+		
+		thing.onActionInvoke((a,p)->{
+			Action action = (Action)a;
+			String actionName = action.getName();
+			Thing subThing = new Thing("_monitor_" + actionName + "_" + UUID.randomUUID().toString());
+			
+			String uri = "SubResources/" + thing.getName()  + "/" + actionName + "/" + subThing.getName();
+			
+			subThing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_URIS, uri, uri);
+			subThing.getMetadata().addContext("BACnet", "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json");
+			subThing.getMetadata().getAssociations().add(new HyperMediaLink("parent", thing.getURIs().get(0)));
+			subThing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_ENCODINGS, "JSON", "JSON");
+			//(String name, String xsdType, boolean isReadable, boolean isWritable, String propertyType, List<String> hrefs)
+			ArrayList<String> hrefs = new ArrayList<>();
+			Property statusProperty = new Property("status", "BACnet:Value", true, false, "BACnet:Monitor", hrefs);
+			subThing.addProperty(statusProperty);			
+			ThingInterface subThingServed = server.addThing(subThing);
+			attachHandler((ServedThing)subThingServed);
+			action.getMetadata().getAssociations().add(new HyperMediaLink("child", uri));
+			//server.rebindSec(thing.getName(), false);
+			bacnetChannel.subscribe((String)p, thing, (ServedThing)subThingServed, statusProperty);
+			return new Content("{\"state\":\"subscribed\"}".getBytes(), MediaType.APPLICATION_JSON);
+		});
 	}	
 
 }
