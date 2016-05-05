@@ -56,7 +56,7 @@ public class BACnetChannel {
 	private List<Pair<String, String>> bacnetContexts = new ArrayList<>();
 	
 	public void open() throws Exception {
-		IpNetwork network = new IpNetworkBuilder().localBindAddress("192.168.0.102").build();
+		IpNetwork network = new IpNetworkBuilder().localBindAddress("192.168.0.11").build();
 		Transport transport = new DefaultTransport(network);
 		// transport.setTimeout(15000);
 		// transport.setSegTimeout(15000);
@@ -78,19 +78,25 @@ public class BACnetChannel {
 		return discoveredThings;
 	}
 
-	public Object read(String propertyUrl){
-		DeviceObjectPropertyIdentifier dopid = bacnetReferenceMap.get(propertyUrl);
+	public Object read(Property property){
+		String key = property.getMetadata().get("@id");
+		DeviceObjectPropertyIdentifier dopid = bacnetReferenceMap.get(key);
 		return readPropertyValueAsString(dopid.dev, dopid.oid, dopid.pid);
 	}
 
-	public Object update(String propertyUrl, String jsonString){
-		DeviceObjectPropertyIdentifier dopid = bacnetReferenceMap.get(propertyUrl);
+	public Object update(Property property, String jsonString){
+		String key = property.getMetadata().get("@id");
+	 	DeviceObjectPropertyIdentifier dopid = bacnetReferenceMap.get(key);
 		return writePropertyValue(dopid.dev, dopid.oid, dopid.pid, jsonString);
 	}
 	
+	//public Thing create(){}
+	
+	//public void delete(Thing thing){}
+	
 	public void subscribe(String subscriptionParameter, ServedThing parent, ServedThing sub, Property subProperty){
 		JSONObject jsonObj = new JSONObject(subscriptionParameter);
-		String propertyUrl = jsonObj.getString("href");
+		String propertyUrl = jsonObj.getString("id");
 		int lifetime = jsonObj.getInt("lifetime");
 		DeviceObjectPropertyIdentifier dopid = bacnetReferenceMap.get(propertyUrl);
 		dopid.parentThing = parent;
@@ -191,6 +197,10 @@ public class BACnetChannel {
 	private Map<String, DeviceObjectPropertyIdentifier> bacnetReferenceMap = new HashMap<>();
 	
 	private void addThing(RemoteDevice device, String objectName, ObjectIdentifier oid){
+		
+		//if(oid.getObjectType().intValue() != ObjectType.binaryOutput.intValue())
+		//	return;
+		
 		String deviceName = device.getName();
 
 		String uri = device.getName() + "/" + objectName.replace('\'', '/');
@@ -200,6 +210,7 @@ public class BACnetChannel {
 		Thing thing = new Thing(objectName);
 		thing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_URIS, uri, uri);
 		thing.getMetadata().addContext("BACnet", "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json");
+		thing.getMetadata().add("@id", objectName);
 		//thing.getMetadata().add("associations", "{\"href\":\"device\",\"rt\":\"parent\"}", "{\"href\":\"device\",\"rt\":\"parent\"}");
 		thing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_ENCODINGS, "JSON", "JSON");
 
@@ -214,8 +225,10 @@ public class BACnetChannel {
 			//hrefs.add(propertyName);
 			//hrefs.add(propertyName);
 			CustomPropertyDescription pd = new CustomPropertyDescription(propertyName, propertyName, isWriteable, typeName, hrefs, "BACnet:ObjectProperty");
+			String keyName = objectName + "." + propertyName;
+			pd.getMetadata().add("@id", keyName);			
 			thing.addProperty(pd);
-			String keyName = objectName + "/" + propertyName;
+			
 			bacnetReferenceMap.put(keyName, new DeviceObjectPropertyIdentifier(device, oid, pid, pd));
 		}		
 		//if(oid.getObjectType() == ObjectType.command){
@@ -276,8 +289,8 @@ public class BACnetChannel {
 	}
 	
 	private void subscribeCOV(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid, int lifetime){
-        SubscribeCOVRequest req = new SubscribeCOVRequest(new UnsignedInteger(0), oid, new Boolean(true),
-                new UnsignedInteger(lifetime));
+        SubscribeCOVRequest req = new SubscribeCOVRequest(new UnsignedInteger(0), oid, lifetime > -1 ? new Boolean(true) : null,
+                lifetime > -1 ? new UnsignedInteger(lifetime) : null);
         localDevice.send(d, req);
 	}
 	
@@ -298,25 +311,13 @@ public class BACnetChannel {
 	}
 	
 	private Object writePropertyValue(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid, String jsonString) {
-		//UnsignedInteger propertyArrayIndex, Encodable propertyValue, UnsignedInteger priority
-	
-		//ServiceFuture sf = localDevice.send(d, new ReadPropertyRequest(oid, pid));
-		//ReadPropertyAck ack;
 		try {
-			//ack = (ReadPropertyAck) sf.get();
-			//Encodable encodable = ack.getValue();
-			
-			//Encodable incoming = RequestUtils.readProperty(localDevice, d, oid, pid, null);
-			//Encodable encodable = incoming.fromJsonString(jsonString);
 			Encodable encodable = RequestUtils.getProperty(localDevice, d, oid, pid); new com.serotonin.bacnet4j.type.primitive.Boolean(true);
 			encodable.updateFromJson(jsonString);
 			RequestUtils.writeProperty(localDevice, d, oid, pid, encodable);
-			//sf = localDevice.send(d, new WritePropertyRequest(oid, pid, null, encodable, null));
-			//Object wack =  sf.get();
 			return null;
 			
 		} catch (BACnetException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return e;
 		}

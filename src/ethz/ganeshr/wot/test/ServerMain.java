@@ -83,7 +83,7 @@ public class ServerMain {
 					result = String.format("{\"state\":\"%d\"}", i);;
 			}
 			else{
-				result = bacnetChannel.read(thing.getName() + "/" + propertyName);
+				result = bacnetChannel.read(property);
 			}
 			thing.setProperty(property, result);	
 			
@@ -91,9 +91,7 @@ public class ServerMain {
 		
 		thing.onPropertyUpdate((p,v)->{
 			Property property = (Property)p;
-			Object value = v;
-			String propertyName = property.getName();
-			bacnetChannel.update(thing.getName() + "/" + propertyName, (String)v);
+			bacnetChannel.update(property, (String)v);
 		});
 		
 		thing.onActionInvoke((a,p)->{
