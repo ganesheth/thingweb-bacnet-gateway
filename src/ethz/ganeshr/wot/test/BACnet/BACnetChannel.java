@@ -214,7 +214,7 @@ public class BACnetChannel extends ChannelBase {
 	
 		if(serviceType.contains("SubscribeCOV"))
 			BACnetSubscriptionHandler.handleSubscriptionRequest(thing, action, inputData);
-		if(serviceType.contains("SubscribeEvents"))
+		else if(serviceType.contains("SubscribeEvents"))
 			BACnetEventHandler.handleSubscriptionRequest(thing, action, inputData);
 		else if(serviceType.contains("Acknowledge"))
 			BACnetEventHandler.handleAcknowledgementRequest(thing, action, inputData);
