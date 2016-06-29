@@ -1,0 +1,34 @@
+{
+	"@context":["http://w3c.github.io/wot/w3c-wot-td-context.jsonld",{"BACnet":"http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json"}],
+	"name":"TemperatureControlMonitor",
+	"uris":["SubResources/ActionMonitors/TemperatureControl", "SubResources/ActionMonitors/TemperatureControl", "bacnet://192.168.0.255:47808/"],
+	"@type":"HVAC:BlindsControlMonitor",
+	"encodings":"JSON",
+	"@id":"258_23",
+	"properties":[
+		{
+			"name":"CurrentTemperature",
+			"writable":false,
+			"observable":true,
+			"valueType":"BACnet:Real",
+			"hrefs":["CurentTemp", "CurentTemp", "/1/2/55/85"],
+			"@id":"1_2_55_85a"
+		},
+		{
+			"name":"DesiredTemperature",
+			"writable":true,
+			"valueType":"BACnet:Real",
+			"hrefs":["DesiredTemp", "DesiredTemp", "/1/2/41/85"],
+			"@id":"1_2_41_85a"
+		},
+		{
+			"name":"Control Output",
+			"writable":false,
+			"valueType":"BACnet:Real",
+			"hrefs":["ControlOutput", "ControlOutput", "/1/1/9/85"],
+			"@id":"1_1_9_85a"
+		}
+	],
+	"actions":[],
+	"events":[]
+}

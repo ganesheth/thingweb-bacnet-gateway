@@ -1,119 +1,161 @@
 package ethz.ganeshr.wot.test;
 
-import java.net.URI;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.serotonin.bacnet4j.obj.ObjectProperties;
-import com.serotonin.bacnet4j.obj.PropertyTypeDefinition;
-import com.serotonin.bacnet4j.type.enumerated.PropertyIdentifier;
-
 import de.thingweb.servient.ServientBuilder;
 import de.thingweb.servient.ThingInterface;
 import de.thingweb.servient.ThingServer;
 import de.thingweb.servient.impl.ServedThing;
 import de.thingweb.thing.Action;
 import de.thingweb.thing.Content;
-import de.thingweb.thing.HyperMediaLink;
 import de.thingweb.thing.MediaType;
-import de.thingweb.thing.Metadata;
 import de.thingweb.thing.Property;
 import de.thingweb.thing.Thing;
-import de.thingweb.thing.ThingMetadata;
-import de.thingweb.util.encoding.ContentHelper;
+import ethz.ganeshr.wot.test.BACnet.BACnetChannel;
+import ethz.ganeshr.wot.test.BACnet.BACnetChannelParam;
+import ethz.ganeshr.wot.test.KNX.KNXChannel;
 
 public class ServerMain {
 	
 	public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
-		ServerMain serverMain = new ServerMain();
+		String bacip = null;
+		int bacport = 47808, httpport = 80;
+		if (args.length > 0) {
+			int index = 0;
+			while (index < args.length) {
+				String arg = args[index];
+				if ("-usage".equals(arg) || "-help".equals(arg) || "-h".equals(arg) || "-?".equals(arg)) {
+					printUsage();
+				} else if ("-bacip".equals(arg)) {
+					bacip = args[index+1];
+				} else if ("-bacport".equals(arg)) {
+					bacport = Integer.parseInt(args[index+1]);
+				} else if ("-httpport".equals(arg)) {
+					httpport = Integer.parseInt(args[index+1]);
+				} else {
+					System.err.println("Unknwon arg "+arg);
+					printUsage();
+				}
+				index += 2;
+			}
+		}	
+		ServerMain serverMain = new ServerMain(bacip, bacport, 80);
+		
 		serverMain.start();
 		
+		 try {
+             System.in.read();
+             serverMain.stop();
+		 } catch (IOException e) {
+             e.printStackTrace();
+		 }
+		 System.exit(0);
+		
 	}
+	
+	private static void printUsage() {
+		System.out.println();
+		System.out.println("SYNOPSIS");
+		System.out.println("	" + ServerMain.class.getSimpleName() + " [-bacip ADDRESS] [-bacport PORT] [-httpport PORT]");
+		System.out.println("OPTIONS");
+		System.out.println("	-bacip ADDRESS");
+		System.out.println("		Bind the BACnet client to a specific host IP address given by ADDRESS .");
+		System.out.println("	-bacportp PORT");
+		System.out.println("		Listen on UDP port PORT (default is 47808).");
+		System.out.println("	-httpport PORT");
+		System.out.println("		HTTP Server to listen on this port.");
+		System.exit(0);
+	}	
 	
 	private final ThingServer server;
 	private static final Logger log = LoggerFactory.getLogger(ServerMain.class);
-	BACnetChannel bacnetChannel = null;
+	ChannelBase bacnetChannel = null;
+	ChannelBase knxChannel = null;
+	List<ChannelBase> channels = new ArrayList<>();
 	
-	public ServerMain() throws Exception{
-		System.out.println("Hello");
-		ServientBuilder.getHttpBinding().setPort(80);
+	public ServerMain(String bacnetAdapterIpAddr, int bacnetPort, int httpPort) throws Exception{
+		ServientBuilder.getHttpBinding().setPort(httpPort);
 		ServientBuilder.initialize();
 		server = ServientBuilder.newThingServer();
-		//final ThingDescription basicLedDesc = DescriptionParser.fromFile("e:/data/temp/basic_led.jsonld");
-		//ThingInterface basicLed = server.addThing(basicLedDesc);
-		//attachBasicHandlers(basicLed);
 
-		bacnetChannel = new BACnetChannel();
-		bacnetChannel.open();
-		List<Thing> things = bacnetChannel.discover(5000);
-		//bacnet.close();
+		if(bacnetAdapterIpAddr == null)
+			bacnetChannel = new BACnetChannel();
+		else
+			bacnetChannel = new BACnetChannel(new BACnetChannelParam(bacnetAdapterIpAddr, bacnetPort));		
+
+		knxChannel = new KNXChannel();	
 		
-		for(Thing thing : things){
-			if(thing == null)
-				log.error("null thing!");
-			else{
-			ThingInterface thingIfc = server.addThing(thing);
-			attachHandler((ServedThing)thingIfc);
-			}
-		}
+		channels.add(bacnetChannel);
+		//channels.add(knxChannel);		
 	}
 	
 	public void start() throws Exception{
-		ServientBuilder.start();		
+		ServientBuilder.start();	
+		for(ChannelBase channel : channels){
+			channel.addThingFoundCallback((l)->{
+				List<Thing> things = (List<Thing>)l;
+				System.out.println(String.format("Discovery report %d new Things", things.size()));
+				
+				for(Thing thing : things){
+					if(thing == null)
+						log.error("null thing!");
+					else{
+						ThingInterface thingIfc = server.addThing(thing);
+						thing.servedThing = thingIfc;
+						attachHandler(channel, (ServedThing)thingIfc);
+					}
+				}			
+			});
+			
+			channel.addThingDeletedCallback((t)->{
+				server.removeThing((Thing)t);
+			});
+			
+			channel.open();
+			channel.discoverAsync(false);
+		}
+		
+		bacnetChannel.discoverFromFile("room_h110_compliant_with_comments.jsonld");
+		knxChannel.discoverFromFile("knx_1.jsonld");
 	}
+	
+	public void stop(){
+		try {
+			for(ChannelBase channel : channels)
+				channel.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	Date dummy;
-	public void attachHandler(ServedThing thing){
+	public void attachHandler(ChannelBase channel, ServedThing thing){
 		thing.onPropertyRead((input) -> {
 			Property property = (Property)input;
 			log.info("Got a read");
 			Object result = "";
-			String propertyName = property.getName();
-			if(propertyName.equalsIgnoreCase("_actionSubscribeCOV/status")){
-				Date d = new Date();
-				long i = d.getTime() - dummy.getTime();
-				if(i > 10000)
-					result = "{\"state\":\"done\"}";
-				else
-					result = String.format("{\"state\":\"%d\"}", i);;
-			}
-			else{
-				result = bacnetChannel.read(property);
-			}
-			thing.setProperty(property, result);	
-			
+			result = channel.read(property);
+			thing.setProperty(property, result);			
 		});
 		
 		thing.onPropertyUpdate((p,v)->{
 			Property property = (Property)p;
-			bacnetChannel.update(property, (String)v);
+			Object result = channel.update(property, (String)v);
+			return result;
 		});
 		
 		thing.onActionInvoke((a,p)->{
 			Action action = (Action)a;
-			String actionName = action.getName();
-			Thing subThing = new Thing("_monitor_" + actionName + "_" + UUID.randomUUID().toString());
-			
-			String uri = "SubResources/" + thing.getName()  + "/" + actionName + "/" + subThing.getName();
-			
-			subThing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_URIS, uri, uri);
-			subThing.getMetadata().addContext("BACnet", "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json");
-			subThing.getMetadata().getAssociations().add(new HyperMediaLink("parent", thing.getURIs().get(0)));
-			subThing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_ENCODINGS, "JSON", "JSON");
-			//(String name, String xsdType, boolean isReadable, boolean isWritable, String propertyType, List<String> hrefs)
-			ArrayList<String> hrefs = new ArrayList<>();
-			Property statusProperty = new Property("status", "BACnet:Value", true, false, "BACnet:Monitor", hrefs);
-			subThing.addProperty(statusProperty);			
-			ThingInterface subThingServed = server.addThing(subThing);
-			attachHandler((ServedThing)subThingServed);
-			action.getMetadata().getAssociations().add(new HyperMediaLink("child", uri));
-			//server.rebindSec(thing.getName(), false);
-			bacnetChannel.subscribe((String)p, thing, (ServedThing)subThingServed, statusProperty);
+			try {
+				channel.handleAction(thing, action, p);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
 			return new Content("{\"state\":\"subscribed\"}".getBytes(), MediaType.APPLICATION_JSON);
 		});
 	}	

@@ -1,0 +1,41 @@
+{
+    "@context": [
+        "http://w3c.github.io/wot/w3c-wot-td-context.jsonld",        
+        { "knx": "http://n.ethz.ch/student/ganeshr/bacnet/knxtypes.json" },
+        { "BA": "http://n.ethz.ch/student/ganeshr/bacnet/hvac_ont.owl" }
+    ],
+	"name":"Room 1",
+	"uris":["CNB/Floor_H/Corridor", "CNB/Floor_H/Corridor", "knxip://192.168.0.101/"],
+	"@type":"knx:LSAB",
+	"encodings":"JSON",
+	"@id":"cnb_flh_h_light",
+	"properties":[
+        {
+            "@type": "BA:Output",
+            "name": "relay",
+            "writable": true,
+            "valueType": "knx:DPT_SWITCH",
+            "hrefs": [ "Light", "Light", "6/1/1" ],
+            "@id": "6_1_1"
+        },
+        {
+            "@type": "BA:Input",
+            "name": "light sensor",
+            "writable": false,
+            "valueType": "knx:DPT_VALUE",
+            "hrefs": [ "LightLevel", "LightLevel", "4/5/4" ],
+            "@id": "6_1_1"
+        },
+        {
+            "@type": "BA:Input",
+            "name": "Presence detector",
+            "writable": false,
+            "valueType": "knx:DPT_BOOL",
+            "hrefs": [ "PresenceDetection", "PresenceDetection", "4/5/1" ],
+            "@id": "6_1_1"
+        }
+        
+	],
+	"actions":[],
+	"events":[]
+}
