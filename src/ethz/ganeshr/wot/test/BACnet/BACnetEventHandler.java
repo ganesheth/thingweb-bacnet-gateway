@@ -39,7 +39,7 @@ public class BACnetEventHandler {
 		channel = chnl;
 	}
 	
-	public static void handleSubscriptionRequest(ServedThing thing, Action action, Object inputData) throws BACnetException{
+	public static String handleSubscriptionRequest(ServedThing thing, Action action, Object inputData) throws BACnetException{
 		String subscriptionParameter = (String)inputData;
 		JSONObject jsonObj = new JSONObject(subscriptionParameter);
 		int instance = jsonObj.getInt("notificationClass");
@@ -58,15 +58,15 @@ public class BACnetEventHandler {
 		RemoteDevice rd = BACnetDiscoveryHandler.discoveredDevices.get(deviceId);
 		
 		if(notificationClass == null)
-			return;
+			return null;
 		
 		channel.registerAsEventRecipient(rd, notificationClass);
 		
 
-		createEventSubscriptionMonitorThing(rd, nc);
+		return createEventSubscriptionMonitorThing(rd, nc);
 	}
 
-	public static void createEventSubscriptionMonitorThing(RemoteDevice rd,final ObjectIdentifier nc) {
+	public static String createEventSubscriptionMonitorThing(RemoteDevice rd,final ObjectIdentifier nc) {
 		Integer instance = nc.getInstanceNumber();
 		
 		Thing subThing = new Thing("_Recipient_NC_" + instance );
@@ -97,11 +97,12 @@ public class BACnetEventHandler {
 			});
 		
 		channel.reportDiscovery(subThing);
+		return uri;
 	}	
 	
 	private static  Map<String, BACnetEventData> eventNotifications = new HashMap<String, BACnetEventData>();
 	
-	public static void handleAcknowledgementRequest(ServedThing thing, Action action, Object inputData) throws BACnetException{
+	public static String handleAcknowledgementRequest(ServedThing thing, Action action, Object inputData) throws BACnetException{
 		/*
 		String actionName = action.getName();
 		Thing subThing = new Thing("_monitor_" + actionName + "_" + UUID.randomUUID().toString());		
@@ -131,7 +132,8 @@ public class BACnetEventHandler {
 					break;
 				}
 			}				
-		}	
+		}
+		return null;
 	}
 	
 	public static void processEventNotification(final UnsignedInteger processIdentifier, final RemoteDevice initiatingDevice,

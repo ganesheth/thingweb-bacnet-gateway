@@ -2,6 +2,8 @@ package ethz.ganeshr.wot.test.BACnet;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -76,8 +78,10 @@ import de.thingweb.desc.ThingDescriptionParser;
 import de.thingweb.servient.ThingInterface;
 import de.thingweb.servient.impl.ServedThing;
 import de.thingweb.thing.Action;
+import de.thingweb.thing.Content;
 import de.thingweb.thing.Event;
 import de.thingweb.thing.HyperMediaLink;
+import de.thingweb.thing.MediaType;
 import de.thingweb.thing.Metadata;
 import de.thingweb.thing.Property;
 import de.thingweb.thing.Thing;
@@ -208,18 +212,35 @@ public class BACnetChannel extends ChannelBase {
 	//public void delete(Thing thing){}
 	
 	@Override
-	public void handleAction(ServedThing thing, Action action, Object inputData) throws BACnetException{
+	public Content handleAction(ServedThing thing, Action action, Object inputData) throws BACnetException{
 		int hrefCount = action.getHrefs().size();
 		String serviceType = action.getHrefs().get(hrefCount - 1);
-	
+		String subResourceUrl = null;
 		if(serviceType.contains("SubscribeCOV"))
-			BACnetSubscriptionHandler.handleSubscriptionRequest(thing, action, inputData);
+			subResourceUrl = BACnetSubscriptionHandler.handleSubscriptionRequest(thing, action, inputData);
 		else if(serviceType.contains("SubscribeEvents"))
-			BACnetEventHandler.handleSubscriptionRequest(thing, action, inputData);
+			subResourceUrl = BACnetEventHandler.handleSubscriptionRequest(thing, action, inputData);
 		else if(serviceType.contains("Acknowledge"))
 			BACnetEventHandler.handleAcknowledgementRequest(thing, action, inputData);
 		else
-			GenericActionHandler.handleActionRequest(thing, action, inputData, this);		
+			subResourceUrl = GenericActionHandler.handleActionRequest(thing, action, inputData, this);
+		
+		try {
+			URI url = new URI(subResourceUrl);
+			subResourceUrl = url.getPath();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Content content = new Content("{\"error\":\"null\"}".getBytes(), MediaType.APPLICATION_JSON);
+		if(subResourceUrl != null){
+			content.setLocationPath(subResourceUrl);
+			content.setResponseType(Content.ResponseType.CREATED);
+		}else{
+			content.setResponseType(Content.ResponseType.UPDATED);
+		}
+		return content;
 	}
 	
 

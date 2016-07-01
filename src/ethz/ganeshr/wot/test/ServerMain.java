@@ -150,13 +150,16 @@ public class ServerMain {
 		
 		thing.onActionInvoke((a,p)->{
 			Action action = (Action)a;
+			Content content = new Content("{\"result\":\"sucess\"}".getBytes(), MediaType.APPLICATION_JSON);
 			try {
-				channel.handleAction(thing, action, p);
+				content = channel.handleAction(thing, action, p);
 			} catch (Exception e) {
 				e.printStackTrace();
+				content = new Content(("{\"error\":\""+ e.getMessage() + "\"}").getBytes(), MediaType.APPLICATION_JSON);
+				content.setResponseType(Content.ResponseType.ERROR);				
 			}
 
-			return new Content("{\"state\":\"subscribed\"}".getBytes(), MediaType.APPLICATION_JSON);
+			return content;
 		});
 	}	
 

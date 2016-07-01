@@ -31,7 +31,7 @@ public class BACnetSubscriptionHandler {
 	
 	public static ArrayList<BACnetThingRelationship> subscribers = new ArrayList<>();
 
-	public static void handleSubscriptionRequest(ServedThing thing, Action action, Object inputData) throws BACnetException{
+	public static String handleSubscriptionRequest(ServedThing thing, Action action, Object inputData) throws BACnetException{
 		String subscriptionParameter = (String)inputData;
 		JSONObject jsonObj = new JSONObject(subscriptionParameter);
 		JSONObject objectRef = jsonObj.getJSONObject("objectReference");
@@ -84,6 +84,8 @@ public class BACnetSubscriptionHandler {
 		channel.reportDiscovery(subThing);
 		action.getMetadata().getAssociations().add(new HyperMediaLink("child", uri));
 		channel.subscribeCOV(rd, oid,  lifetime);
+		
+		return uri;
 	}
 	
 	 public static void handleCovNotification(UnsignedInteger subscriberProcessIdentifier, RemoteDevice initiatingDevice,

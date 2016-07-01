@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import de.thingweb.servient.impl.ServedThing;
 import de.thingweb.thing.Action;
+import de.thingweb.thing.Content;
 import de.thingweb.thing.Property;
 import de.thingweb.thing.Thing;
 
@@ -34,7 +35,7 @@ public abstract class ChannelBase {
 	
 	public abstract Object update(Property property, String value);
 	
-	public abstract void handleAction(ServedThing thing, Action action, Object inputData) throws Exception;
+	public abstract Content handleAction(ServedThing thing, Action action, Object inputData) throws Exception;
 	
 	public void addThingFoundCallback(Consumer<Object> thingFoundCallback){
 		m_thingFoundCallback = thingFoundCallback;

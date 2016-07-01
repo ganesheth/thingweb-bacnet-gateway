@@ -20,6 +20,7 @@ import com.sun.org.apache.xerces.internal.util.URI;
 import de.thingweb.desc.ThingDescriptionParser;
 import de.thingweb.servient.impl.ServedThing;
 import de.thingweb.thing.Action;
+import de.thingweb.thing.Content;
 import de.thingweb.thing.Property;
 import de.thingweb.thing.Thing;
 import ethz.ganeshr.wot.test.ChannelBase;
@@ -202,9 +203,8 @@ public class KNXChannel extends ChannelBase {
 	}
 
 	@Override
-	public void handleAction(ServedThing thing, Action action, Object inputData) throws Exception {
-		// TODO Auto-generated method stub
-		
+	public Content handleAction(ServedThing thing, Action action, Object inputData) throws Exception {
+		return null;
 	}	
 	
 

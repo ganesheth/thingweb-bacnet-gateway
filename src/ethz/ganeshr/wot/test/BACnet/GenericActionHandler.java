@@ -16,7 +16,7 @@ import ethz.ganeshr.wot.test.ServerMain;
 
 
 public class GenericActionHandler {
-	public static void handleActionRequest(ServedThing thing, Action action, Object inputData, BACnetChannel channel){
+	public static String handleActionRequest(ServedThing thing, Action action, Object inputData, BACnetChannel channel){
 		/*
 		try {
 			URI uri = new URI(action.getHrefs().get(2));
@@ -56,6 +56,8 @@ public class GenericActionHandler {
 			channel.update(affectedPropertyId, "{\"value\":null, \"priority\":8}");
 			channel.reportDeletion(createdThing);
 		});
+		
+		return createdThing.getMetadata().getAll("uris").get(0);
 	}
 	
 }
