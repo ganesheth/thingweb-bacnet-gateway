@@ -412,7 +412,7 @@ public class BACnetChannel extends ChannelBase {
                 (ObjectIdentifier) eventData.get("eventObjectIdentifier"), //
                 (EventState) eventData.get("toState"), //
                 (TimeStamp) eventData.get("timeStamp"), //
-                null, /*new CharacterString(ackSource),*/ //
+                new CharacterString(ackSource), //
                 now);
         localDevice.send((RemoteDevice) eventData.get("initiatingDevice"), req).get();
 	}
