@@ -63,10 +63,14 @@ public class BACnetEventHandler {
 		channel.registerAsEventRecipient(rd, notificationClass);
 		
 
-		return createEventSubscriptionMonitorThing(rd, nc);
+		String subUrl =  createEventSubscriptionMonitorThing(action, rd, nc);
+		
+
+		
+		return subUrl;
 	}
 
-	public static String createEventSubscriptionMonitorThing(RemoteDevice rd,final ObjectIdentifier nc) {
+	public static String createEventSubscriptionMonitorThing(Action action, RemoteDevice rd,final ObjectIdentifier nc) {
 		Integer instance = nc.getInstanceNumber();
 		
 		Thing subThing = new Thing("_Recipient_NC_" + instance );
@@ -91,7 +95,15 @@ public class BACnetEventHandler {
 		BACnetThingRelationship dopid = new BACnetThingRelationship(rd, nc, PropertyIdentifier.recipientList, subThing, p);
 		channel.relationshipMap.put(p.getMetadata().get("@id"), dopid);
 		
+		final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
+		if(action != null){				
+			action.getMetadata().getAssociations().add(childLink);
+		}
+		
 		subThing.setDeleteCallback((dp)->{
+				if(action != null){
+					action.getMetadata().getAssociations().remove(childLink);
+				}
 				channel.unRegisterAsEventRecipient(rd, nc);
 				channel.reportDeletion(subThing);
 			});

@@ -7,18 +7,18 @@
 	"@id":"258_22",
 	"properties":[
 		{
-      		"name": "CurrentPosition",
+            "name": "CurrentPosition",
 			"writable":false,
 			"valueType":"BACtype:BlindsPosition",
-			"hrefs":["CurPos", "CurPos", "/1/258/7/5083"],
-			"@id":"1_258_7_5083"
+			"hrefs":["CurPos", "CurPos", "/1/258/22/5083"],
+			"@id":"1_258_22_5083"
 		},
 		{
 			"name":"DesiredPosition",
 			"writable":true,
 			"valueType":"BACtype:BlindsPosition",
-			"hrefs":["SetPos", "SetPos", "/1/258/7/85"],
-			"@id":"1_258_7_85"
+			"hrefs":["SetPos", "SetPos", "/1/258/22/85"],
+			"@id":"1_258_22_85"
 		}
 	],
 	"actions":[],

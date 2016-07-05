@@ -1,6 +1,7 @@
 {
 	"@context": [
 		"http://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+		"https://w3c.github.io/wot/w3c-wot-common-context.jsonld",
 		{"BACnet": "http://bacowl.sourceforge.net/2012/bacnet.ttl"},
 		{"BACtype": "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json"},
 		{"BA": "http://n.ethz.ch/student/ganeshr/bacnet/hvac_ont.owl"}
@@ -17,8 +18,8 @@
 			"writable": false,
 			"unit": "celsius",
 			"valueType": "BACtype:Real",
-			"hrefs": [ "HVAC/RoomTemperature", "HVAC/RoomTemperature", "/1/0/0/85" ],
-			"@id": "1_0_0_85"
+			"hrefs": [ "HVAC/RoomTemperature", "HVAC/RoomTemperature", "/1/0/74/85" ],
+			"@id": "1_0_74_85"
 		},
 		{
 			"@type": ["BACnet:AnalogInputObject:statusFlags" ],
@@ -26,8 +27,8 @@
 			"_comment": "Example of bitstring type. Issue: type system",
 			"writable": false,
 			"valueType": "BACtype:StatusFlags",
-			"hrefs": [ "HVAC/RoomTemperature/StatusFlags", "HVAC/RoomTemperature/StatusFlags", "/1/0/0/111" ],
-			"@id": "1_0_0_111"
+			"hrefs": [ "HVAC/RoomTemperature/StatusFlags", "HVAC/RoomTemperature/StatusFlags", "/1/0/74/111" ],
+			"@id": "1_0_74_111"
 		},
 		{
 			"@type": ["BA:Setpoint", "BACnet:AnalogValueObject:presentValue"],
@@ -37,8 +38,8 @@
 			"max": 27,
 			"unit": "celsius",
 			"valueType": "BACtype:PropertyValueNumeric",
-			"hrefs": ["HVAC/TemperatureSetpoint", "HVAC/TemperatureSetpoint", "/1/2/41/85"],
-			"@id": "1_2_41_85"
+			"hrefs": ["HVAC/TemperatureSetpoint", "HVAC/TemperatureSetpoint", "/1/2/14/85"],
+			"@id": "1_2_14_85"
 		},
 		{
 			"@type": [ "BA:Output", "BACnet:AnalogOutputObject:presentValue" ],
@@ -46,8 +47,8 @@
 			"_comment": "Issue: asymettric data types involved in read-write",
 			"writable": true,
 			"valueType": "BACtype:PropertyValueNumeric",
-			"hrefs": [ "HVAC/Fan/Speed", "HVAC/Fan/Speed", "/1/1/145/85" ],
-			"@id": "1_1_145_85"
+			"hrefs": [ "HVAC/Fan/Speed", "HVAC/Fan/Speed", "/1/1/57/85" ],
+			"@id": "1_1_57_85"
 		},
 		{
 			"@type": ["BACnet:AnalogOutputObject:priorityArray" ],
@@ -55,42 +56,42 @@
 			"_comment": "Example of an array whose elements are of hetrogenous types (sequence of BACnet::Any). Issue: type system",
 			"writable": false,
 			"valueType": "BACtype:PriorityArray",
-			"hrefs": [ "HVAC/Fan/PriorityArray", "HVAC/Fan/Priority", "/1/1/145/87" ],
-			"@id": "1_1_145_87"
+			"hrefs": [ "HVAC/Fan/PriorityArray", "HVAC/Fan/Priority", "/1/1/57/87" ],
+			"@id": "1_2_224_87"
 		},
-	    {
-	        "@type": [ "BA:Input", "BACnet:BinaryValueObject:presentValue" ],
-	        "name": "Occupancy",
-	        "_comment": "Issue: directly observable Properties",
-	        "writable": false,
-	        "valueType": "BACtype:Boolean",
-	        "hrefs": [ "OccupancyStatus", "OccupancyStatus", "/1/5/6/85" ],
-	        "@id": "1_5_6_85"
-	    },
-	    {
-	        "@type": [ "BA:Output" ],
-	        "name": "Light - current value of brightness",
-	        "writable": false,
-	        "valueType": "BACtype:PropertyValueNumeric",
-	        "hrefs": [ "Lighting/Light1/Brightness", "Lighting/Light1/Brightness", "1/2/379/85" ],
-	        "@id": "1_2_379_85"
-	    },
-	    {
-	        "@type": [ "BA:Output" ],
-	        "name": "Light - override value of brightness",
-	        "writable": true,
-	        "valueType": "BACtype:PropertyValueNumeric",
-	        "hrefs": [ "Lighting/Light1/BrightnessOverride", "Lighting/Light1/BrightnessOverride", "1/2/380/85" ],
-	        "@id": "1_2_380_85"
-	    },
-	    {
-	        "@type": [ "BA:EnergyEfficiencyLevels", "BACnet:MultistateValueObject:presentValue" ],
-	        "name": "Room efficiency level",
-	        "writable": false,
-	        "valueType": "BACtype:Enumerated",
-	        "hrefs": [ "EnergyEfficiency", "EnergyEfficiency", "1/19/15/85" ],
-	        "@id": "1_19_15_85"
-	    },
+        {
+            "@type": [ "BA:Input", "BACnet:BinaryValueObject:presentValue" ],
+            "name": "Occupancy",
+            "_comment": "Issue: directly observable Properties",
+            "writable": false,
+            "valueType": "BACtype:Boolean",
+            "hrefs": [ "OccupancyStatus", "OccupancyStatus", "/1/5/70/85" ],
+            "@id": "1_5_70_85"
+        },
+        {
+            "@type": [ "BA:Output" ],
+            "name": "Light - current value of brightness",
+            "writable": false,
+            "valueType": "BACtype:PropertyValueNumeric",
+            "hrefs": [ "Lighting/Light1/Brightness", "Lighting/Light1/Brightness", "1/2/224/85" ],
+            "@id": "1_2_224_85"
+        },
+        {
+            "@type": [ "BA:Output" ],
+            "name": "Light - override value of brightness",
+            "writable": true,
+            "valueType": "BACtype:PropertyValueNumeric",
+            "hrefs": [ "Lighting/Light1/BrightnessOverride", "Lighting/Light1/BrightnessOverride", "1/2/223/85" ],
+            "@id": "1_2_223_85"
+        },
+        {
+            "@type": [ "BA:EnergyEfficiencyLevels", "BACnet:MultistateValueObject:presentValue" ],
+            "name": "Room efficiency level",
+            "writable": false,
+            "valueType": "BACtype:Enumerated",
+            "hrefs": [ "EnergyEfficiency", "EnergyEfficiency", "1/19/25/85" ],
+            "@id": "1_19_25_85"
+        },
 		{
 			"@type": [ "BACnet:TrendLogObject:logBuffer" ],
 			"name": "Temperature history",
@@ -100,42 +101,42 @@
 			"hrefs": [ "HVAC/RoomTemperature/Trend/Values", "HVAC/RoomTemperature/Trend/Values", "/1/20/5/131" ],
 			"@id": "1_20_5_131"
 		},
-	    {
-	        "@type": [ "BACnet:TrendLogObject:logDeviceObjectProperty" ],
-	        "name": "Trend logger reference",
-	        "_comment": "Example of complex type",
-	        "writable": true,
-	        "valueType": "BACtype:DeviceObjectPropertyReference",
-	        "hrefs": [ "HVAC/RoomTemperature/Trend/Source", "HVAC/RoomTemperature/Trend/Source", "/1/20/5/132" ],
+        {
+            "@type": [ "BACnet:TrendLogObject:logDeviceObjectProperty" ],
+            "name": "Trend logger reference",
+            "_comment": "Example of complex type",
+            "writable": true,
+            "valueType": "BACtype:DeviceObjectPropertyReference",
+            "hrefs": [ "HVAC/RoomTemperature/Trend/Source", "HVAC/RoomTemperature/Trend/Source", "/1/20/5/132" ],
 	        "@id": "1_20_5_132"
-	    },
-	    {
-	        "@type": [ "BACnet:TrendLogObject:enable" ],
-	        "name": "Trend logging enable",
-	        "_comment": "Set this to false before changing start and end time",
-	        "writable": true,
-	        "valueType": "BACtype:DateTime",
-	        "hrefs": [ "HVAC/RoomTemperature/Trend/Enable", "HVAC/RoomTemperature/Trend/Enable", "1/20/5/133" ],
+        },
+        {
+            "@type": [ "BACnet:TrendLogObject:enable" ],
+            "name": "Trend logging enable",
+            "_comment": "Set this to false before changing start and end time",
+            "writable": true,
+            "valueType": "BACtype:DateTime",
+	        "hrefs": [ "HVAC/RoomTemperature/Trend/Enable", "HVAC/RoomTemperature/Trend/Enable", "/1/20/5/133" ],
 	        "@id": "1_20_5_133"
-	    },
-	    {
-	        "@type": [ "BACnet:TrendLogObject:startTime" ],
-	        "name": "Trend logging start",
-	        "_comment":  "Example of complex type with special encoding",
-	        "writable": true,
-	        "valueType": "BACtype:DateTime",
-	        "hrefs": [ "HVAC/RoomTemperature/Trend/StartTime", "HVAC/RoomTemperature/Trend/StartTime", "1/20/5/142" ],
+        },
+        {
+            "@type": [ "BACnet:TrendLogObject:startTime" ],
+            "name": "Trend logging start",
+            "_comment":  "Example of complex type with special encoding",
+            "writable": true,
+            "valueType": "BACtype:DateTime",
+	        "hrefs": [ "HVAC/RoomTemperature/Trend/StartTime", "HVAC/RoomTemperature/Trend/StartTime", "/1/20/5/142" ],
 	        "@id": "1_20_5_142"
-	    },
-	    {
-	        "@type": [ "BACnet:TrendLogObject:endTime" ],
-	        "name": "Trend logging end - example of complex type with special encoding",
-	        "_comment":  "Example of complex type with special encoding. Constraint w.r.t start time.",
-	        "writable": true,
-	        "valueType": "BACtype:DateTime",
-	        "hrefs": [ "HVAC/RoomTemperature/Trend/EndTime", "HVAC/RoomTemperature/Trend/EndTime", "1/20/5/143" ],
+        },
+        {
+            "@type": [ "BACnet:TrendLogObject:endTime" ],
+            "name": "Trend logging end - example of complex type with special encoding",
+            "_comment":  "Example of complex type with special encoding. Constraint w.r.t start time.",
+            "writable": true,
+            "valueType": "BACtype:DateTime",
+	        "hrefs": [ "HVAC/RoomTemperature/Trend/EndTime", "HVAC/RoomTemperature/Trend/EndTime", "/1/20/5/143" ],
 	        "@id": "1_20_5_143"
-	    },
+        },
 		{
 			"@type": "BACnet:FileObject",
 			"name": "Config file",
@@ -168,7 +169,7 @@
 			"inputData": { "valueType": "BACtype:BlindsPosition" },
 			"outputData": { "valueType": "BACtype:BlindsControlActionMonitor" },
 			"hrefs": [ "Actions/BlindsControl", "Actions/BlindsControl", "/BlindsControlAction" ],
-			"@id": "1_258_7_85_CMD"
+			"@id": "1_258_0_85_CMD"
 		},
 		{
 			"_comment": "Vocabulary for @type unfinished",
@@ -176,25 +177,25 @@
 			"inputData": { "valueType": "BACtype:Real" },
 			"outputData": { "valueType": "BACtype:TemperatureControlActionMonitor" },
 			"hrefs": [ "Actions/TemperatureControl", "Actions/TemperatureControl", "/TemperatureControlAction" ],
-			"@id": "1_2_41_85_CMD"
+			"@id": "1_2_14_85_CMD"
 		}			   		
 	],
 	"events":[
-	    {
+		{
 			"_comment": "Vocabulary for @type unfinished",
 			"name": "Change of value",
 			"inputData": { "valueType": "BACtype:COVSubscriptionParameters" },
 			"outputData": { "valueType": "BACtype:COVNotification" },
 			"hrefs": [ "EventSource/CovEvent", "EventSource/CovEvent", "/SubscribeCOV" ],
-			"@id": "1_10_790_1"
-	    },
-	    {
+      			"@id": "1_10_790_1"
+		},
+		{
 			"_comment": "Vocabulary for @type unfinished",
 			"name": "Alarm events subscription",
 			"inputData": { "valueType": "BACtype:AddRecipientRequest" },
 			"outputData": { "valueType": "BACtype:NotificationRecipient" },
 			"hrefs": [ "EventSource/AlarmEvent", "EventSource/AlarmEvent", "/SubscribeEvents" ],
-			"@id": "1_10_790_2"
+      "@id": "1_10_790_2"
 		}
 	]
 }

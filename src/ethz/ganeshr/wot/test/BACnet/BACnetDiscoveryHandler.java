@@ -76,7 +76,7 @@ public class BACnetDiscoveryHandler {
 							notificationClasses.add(oid);
 							int index = channel.getRegisteredIndexInRecipientList(d, oid);
 							if(index > 0)
-								BACnetEventHandler.createEventSubscriptionMonitorThing(d, oid);
+								BACnetEventHandler.createEventSubscriptionMonitorThing(null, d, oid);
 						}
 						
 						if(		oid.getObjectType().intValue() != ObjectType.binaryInput.intValue() &&

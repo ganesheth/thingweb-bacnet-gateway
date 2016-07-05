@@ -21,9 +21,13 @@ import ethz.ganeshr.wot.test.KNX.KNXChannel;
 
 public class ServerMain {
 	
+	private static String tdfile = "room_h110_compliant_with_comments.jsonld";
+	
 	public static void main(String[] args) throws Exception {
 		String bacip = null;
 		int bacport = 47808, httpport = 80;
+		
+		
 		if (args.length > 0) {
 			int index = 0;
 			while (index < args.length) {
@@ -36,7 +40,9 @@ public class ServerMain {
 					bacport = Integer.parseInt(args[index+1]);
 				} else if ("-httpport".equals(arg)) {
 					httpport = Integer.parseInt(args[index+1]);
-				} else {
+				} else if ("-tdfile".equals(arg)) {
+					tdfile = args[index+1];
+				}  else {
 					System.err.println("Unknwon arg "+arg);
 					printUsage();
 				}
@@ -64,10 +70,12 @@ public class ServerMain {
 		System.out.println("OPTIONS");
 		System.out.println("	-bacip ADDRESS");
 		System.out.println("		Bind the BACnet client to a specific host IP address given by ADDRESS .");
-		System.out.println("	-bacportp PORT");
+		System.out.println("	-bacport PORT");
 		System.out.println("		Listen on UDP port PORT (default is 47808).");
 		System.out.println("	-httpport PORT");
 		System.out.println("		HTTP Server to listen on this port.");
+		System.out.println("	-tdfile filename");
+		System.out.println("		Filename of the ThingDescription to use.");
 		System.exit(0);
 	}	
 	
@@ -87,8 +95,7 @@ public class ServerMain {
 		else
 			bacnetChannel = new BACnetChannel(new BACnetChannelParam(bacnetAdapterIpAddr, bacnetPort));		
 
-		knxChannel = new KNXChannel();	
-		
+		knxChannel = new KNXChannel();			
 		channels.add(bacnetChannel);
 		//channels.add(knxChannel);		
 	}
@@ -118,9 +125,9 @@ public class ServerMain {
 			channel.open();
 			channel.discoverAsync(false);
 		}
-		
-		bacnetChannel.discoverFromFile("room_h110_compliant_with_comments.jsonld");
-		knxChannel.discoverFromFile("knx_1.jsonld");
+		bacnetChannel.discoverFromFile(tdfile);
+		//bacnetChannel.discoverFromFile("room_h110_compliant_with_comments.jsonld");
+		//knxChannel.discoverFromFile("knx_1.jsonld");
 	}
 	
 	public void stop(){

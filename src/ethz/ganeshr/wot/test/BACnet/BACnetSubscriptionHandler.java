@@ -32,14 +32,26 @@ public class BACnetSubscriptionHandler {
 	public static ArrayList<BACnetThingRelationship> subscribers = new ArrayList<>();
 
 	public static String handleSubscriptionRequest(ServedThing thing, Action action, Object inputData) throws BACnetException{
+		int deviceId, objectType, objectIntstance;
+		
 		String subscriptionParameter = (String)inputData;
-		JSONObject jsonObj = new JSONObject(subscriptionParameter);
-		JSONObject objectRef = jsonObj.getJSONObject("objectReference");
-		int deviceId = objectRef.getInt("deviceIdentifier");
-		JSONObject objectId = objectRef.getJSONObject("objectIdentifier");
-		int objectType = objectId.getInt("objectType");
-		int objectIntstance = objectId.getInt("instance");
-		int lifetime = jsonObj.getInt("lifetime");
+		JSONObject jsonObjInputData = new JSONObject(subscriptionParameter);
+		
+		if(action.getDefaultParameters() != null){
+			JSONObject jsonObjDefaults = new JSONObject(action.getDefaultParameters());
+			JSONObject objectRef = jsonObjDefaults.getJSONObject("objectReference");
+			deviceId = objectRef.getInt("deviceIdentifier");
+			JSONObject objectId = objectRef.getJSONObject("objectIdentifier");
+			objectType = objectId.getInt("objectType");
+			objectIntstance = objectId.getInt("instance");			
+		}else{
+			JSONObject objectRef = jsonObjInputData.getJSONObject("objectReference");
+			deviceId = objectRef.getInt("deviceIdentifier");
+			JSONObject objectId = objectRef.getJSONObject("objectIdentifier");
+			objectType = objectId.getInt("objectType");
+			objectIntstance = objectId.getInt("instance");			
+		}		
+		int lifetime = jsonObjInputData.getInt("lifetime");
 		
 		RemoteDevice rd = BACnetDiscoveryHandler.discoveredDevices.get(deviceId);
 		ObjectIdentifier oid = new ObjectIdentifier(ObjectType.ALL[objectType], objectIntstance);
@@ -74,7 +86,15 @@ public class BACnetSubscriptionHandler {
 		BACnetThingRelationship subscriber = new BACnetThingRelationship(rd, oid, PropertyIdentifier.presentValue, subThing, valueProperty);
 		subscribers.add(subscriber);
 		
+		final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
+		if(action != null){				
+			action.getMetadata().getAssociations().add(childLink);
+		}
+		
 		subThing.setDeleteCallback((dp)->{
+				if(action != null){
+					action.getMetadata().getAssociations().remove(childLink);
+				}
 				channel.subscribeCOV(rd, oid,  -1);
 				channel.reportDeletion(subThing);
 				subscribers.remove(subscriber);
