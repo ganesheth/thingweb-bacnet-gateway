@@ -1,5 +1,5 @@
 {
-	"@context":["http://w3c.github.io/wot/w3c-wot-td-context.jsonld",{"BACnet":"http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json"}],
+	"@context":["http://w3c.github.io/wot/w3c-wot-td-context.jsonld",{"BACtype":"http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json"}],
 	"name":"TemperatureControlMonitor",
 	"uris":["SubResources/ActionMonitors/TemperatureControl", "SubResources/ActionMonitors/TemperatureControl", "bacnet://192.168.0.255:47808/"],
 	"@type":"HVAC:BlindsControlMonitor",
@@ -9,21 +9,21 @@
 		{
 			"name":"CurrentTemperature",
 			"writable":false,
-			"valueType":"BACnet:Real",
+      "valueType": { "$ref": "BACtype:Real" },
 			"hrefs":["CurentTemp", "CurentTemp", "/1/0/1/85"],
 			"@id":"1_2_55_85a"
 		},
 		{
 			"name":"DesiredTemperature",
 			"writable":true,
-			"valueType":"BACnet:Real",
+			"valueType":{"$ref":"BACtype:Real" },
 			"hrefs":["DesiredTemp", "DesiredTemp", "/1/2/1/85"],
 			"@id":"1_2_41_85a"
 		},
 		{
 			"name":"Control Output",
 			"writable":false,
-			"valueType":"BACnet:Real",
+			"valueType":{"$ref":"BACtype:Real" },
 			"hrefs":["ControlOutput", "ControlOutput", "/1/1/1/85"],
 			"@id":"1_1_9_85a"
 		}

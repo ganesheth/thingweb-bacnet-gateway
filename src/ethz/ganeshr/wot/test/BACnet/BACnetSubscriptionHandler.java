@@ -37,8 +37,10 @@ public class BACnetSubscriptionHandler {
 		String subscriptionParameter = (String)inputData;
 		JSONObject jsonObjInputData = new JSONObject(subscriptionParameter);
 		
-		if(action.getDefaultParameters() != null){
-			JSONObject jsonObjDefaults = new JSONObject(action.getDefaultParameters());
+		JSONObject jsonObjInputDataType = new JSONObject(action.getInputType());
+		
+		if(jsonObjInputDataType.has("defaults")){
+			JSONObject jsonObjDefaults = jsonObjInputDataType.getJSONObject("defaults");
 			JSONObject objectRef = jsonObjDefaults.getJSONObject("objectReference");
 			deviceId = objectRef.getInt("deviceIdentifier");
 			JSONObject objectId = objectRef.getJSONObject("objectIdentifier");
@@ -65,21 +67,21 @@ public class BACnetSubscriptionHandler {
 		String uri = "SubResources/COVMonitors/" + monitoredId + "/" + subThing.getName();
 		
 		subThing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_URIS, uri, uri);
-		subThing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_CONTEXT, "BACnet:http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json");
+		subThing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_CONTEXT, "BACtype:http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json");
 		subThing.getMetadata().getAssociations().add(new HyperMediaLink("parent", thing.getURIs().get(0)));
 		subThing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_ENCODINGS, "JSON");
 		subThing.getMetadata().add("@type", "BACnet:COVNotification");
 		//(String name, String xsdType, boolean isReadable, boolean isWritable, String propertyType, List<String> hrefs)
 		//ArrayList<String> hrefs = new ArrayList<>();
-		Property valueProperty = new Property("value", "BACnet:Real", true, false, true, "BACnet:Monitor", new ArrayList<>());
+		Property valueProperty = new Property("value", wrapType("BACnet:Real"), true, false, true, "BACnet:Monitor", new ArrayList<>());
 		valueProperty.isUnderAsyncUpdate = true;
 		subThing.addProperty(valueProperty);
 		//hrefs = new ArrayList<>();
-		Property timestampProperty = new Property("timeStamp", "BACnet:DateTime", true, false, true, null, new ArrayList<>());
+		Property timestampProperty = new Property("timeStamp", wrapType("BACnet:DateTime"), true, false, true, null, new ArrayList<>());
 		timestampProperty.isUnderAsyncUpdate = true;
 		subThing.addProperty(timestampProperty);
 		//hrefs = new ArrayList<>();
-		Property timeRemainingProperty = new Property("timeRemaining", "BACnet:UnsignedInteger", true, false, true, null, new ArrayList<>());
+		Property timeRemainingProperty = new Property("timeRemaining", wrapType("BACnet:UnsignedInteger"), true, false, true, null, new ArrayList<>());
 		timeRemainingProperty.isUnderAsyncUpdate = true;
 		subThing.addProperty(timeRemainingProperty);
 		
@@ -106,6 +108,9 @@ public class BACnetSubscriptionHandler {
 		channel.subscribeCOV(rd, oid,  lifetime);
 		
 		return uri;
+	}
+	private static String wrapType(String typeRef){
+		return "{\"$ref\":\"" + typeRef + "\"}";
 	}
 	
 	 public static void handleCovNotification(UnsignedInteger subscriberProcessIdentifier, RemoteDevice initiatingDevice,

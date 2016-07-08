@@ -46,9 +46,8 @@ public class GenericActionHandler {
 		 * The affected property is known from the action id - which is affected propertyid + "_CMD"
 		 * On deletion of the action, the priority array index 8 of the affected property is written with NULL
 		 */	
-		
-		String outputType = action.getOutputType();		
-		String templateFile = outputType.replace(":", "_") + ".jsonld";
+
+		String templateFile = action.getName() + ".jsonld";
 		Thing createdThing = BACnetDiscoveryHandler.handleCreateFromTDFile(templateFile);
 		String affectedPropertyId = action.getMetadata().get("@id").replace("_CMD", "");
 		channel.update(affectedPropertyId, (String)inputData);

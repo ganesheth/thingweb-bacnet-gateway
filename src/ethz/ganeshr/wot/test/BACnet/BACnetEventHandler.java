@@ -135,7 +135,7 @@ public class BACnetEventHandler {
 		action.getMetadata().getAssociations().add(new HyperMediaLink("child", uri));
 		*/
 
-		if (action.getInputType().equals("BACnet:EventAckParameters")){
+		//if (action.getInputType().equals("BACnet:EventAckParameters")){
 			for(BACnetEventData ed : eventNotifications.values()){
 				if(ed.associatedThing.getName().equals(thing.getName())){
 					JSONObject jsonObj = new JSONObject(inputData.toString());
@@ -144,7 +144,7 @@ public class BACnetEventHandler {
 					break;
 				}
 			}				
-		}
+		//}
 		return null;
 	}
 	
@@ -193,38 +193,42 @@ public class BACnetEventHandler {
 		thing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_ENCODINGS, "JSON");
 		//Property(String name, String xsdType, boolean isReadable, boolean isWritable, String propertyType, List<String> hrefs)
 		
-		Property p = new Property("processIdentifier", "BACnet:UnsignedInteger", true, false,  null, new ArrayList<String>());
+		Property p = new Property("processIdentifier", wrapType("BACnet:UnsignedInteger"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("initiatingDevice", "BACnet:CharacterArray", true, false,  "BACnet:Device", new ArrayList<String>());
+		p = new Property("initiatingDevice", wrapType("BACnet:CharacterArray"), true, false,  "BACnet:Device", new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("eventObjectIdentifier", "BACnet:ObjectIdentifier", true, false,  null, new ArrayList<String>());
+		p = new Property("eventObjectIdentifier", wrapType("BACnet:ObjectIdentifier"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("timeStamp", "BACnet:TimeStamp", true, false,  null, new ArrayList<String>());
+		p = new Property("timeStamp", wrapType("BACnet:TimeStamp"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("notificationClass", "BACnet:UnsignedInteger", true, false,  null, new ArrayList<String>());
+		p = new Property("notificationClass", wrapType("BACnet:UnsignedInteger"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("priority", "BACnet:UnsignedInteger", true, false,  null, new ArrayList<String>());
+		p = new Property("priority", wrapType("BACnet:UnsignedInteger"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("eventType", "BACnet:EventType", true, false,  null, new ArrayList<String>());
+		p = new Property("eventType", wrapType("BACnet:EventType"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("messageText", "BACnet:CharacterString", true, false,  null, new ArrayList<String>());
+		p = new Property("messageText", wrapType("BACnet:CharacterString"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("notifyType", "BACnet:NotifyType", true, false,  null, new ArrayList<String>());
+		p = new Property("notifyType", wrapType("BACnet:NotifyType"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("ackRequired", "BACnet:Boolean", true, false,  null, new ArrayList<String>());
+		p = new Property("ackRequired", wrapType("BACnet:Boolean"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("fromState", "BACnet:EventState", true, false,  null, new ArrayList<String>());
+		p = new Property("fromState", wrapType("BACnet:EventState"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("toState", "BACnet:EventState", true, false,  null, new ArrayList<String>());
+		p = new Property("toState", wrapType("BACnet:EventState"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
-		p = new Property("eventValues", "BACnet:NotificationParametersOutOfRange", true, false,  null, new ArrayList<String>());
+		p = new Property("eventValues", wrapType("BACnet:NotificationParametersOutOfRange"), true, false,  null, new ArrayList<String>());
 		thing.addProperty(p);
 		
-		Action action1 = Action.getBuilder("AcknowledgeAlarm").setInputType("BACnet:EventAckParameters").build();
-		//action1.getMetadata().add("@type", "BACnet:AcknowledgeAlarm");
+		Action action1 = Action.getBuilder("AcknowledgeAlarm").setInputType("{\"valueType\":"+ wrapType("BACnet:EventAckParameters") +"}").build();
+		action1.getMetadata().add("@type", "BACnet:AcknowledgeAlarm");
 		thing.addAction(action1);
 		
 		thing.setTag(eventData);
 		return thing;
-	}	
+	}
+	
+	private static String wrapType(String typeRef){
+		return "{\"$ref\":\"" + typeRef + "\"}";
+	}
 }

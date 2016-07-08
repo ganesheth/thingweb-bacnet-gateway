@@ -92,36 +92,35 @@ import javafx.util.Pair;
 
 public class BACnetChannel extends ChannelBase {
 	private LocalDevice localDevice;
-	
+
 	private List<Pair<String, String>> bacnetContexts = new ArrayList<>();
 	private ObjectIdentifier localDeviceObjectId;
 	protected Map<String, BACnetThingRelationship> relationshipMap = new HashMap<>();
 	private BACnetChannelParam channelParam;
 	ObjectMapper jsonMapper = new ObjectMapper();
-	
-	public BACnetChannel(BACnetChannelParam param){
+
+	public BACnetChannel(BACnetChannelParam param) {
 		this.channelParam = param;
 	}
-	
-	public BACnetChannel(){
+
+	public BACnetChannel() {
 		channelParam = null;
 	}
-	
 
 	@Override
 	public void open() throws Exception {
-		if(channelParam != null){
+		if (channelParam != null) {
 			String ipaddr = channelParam.getIpAddress();
 			int port = channelParam.getPort();
 			IpNetwork network = new IpNetworkBuilder().localBindAddress(ipaddr).port(port).build();
 			init(network);
-		}else{		
+		} else {
 			IpNetwork network = new IpNetworkBuilder().build();
 			init(network);
 		}
-	}	
+	}
 
-	private void init(IpNetwork network) throws Exception{
+	private void init(IpNetwork network) throws Exception {
 		Transport transport = new DefaultTransport(network);
 		// transport.setTimeout(15000);
 		// transport.setSegTimeout(15000);
@@ -132,10 +131,10 @@ public class BACnetChannel extends ChannelBase {
 		BACnetSubscriptionHandler.setChannel(this);
 		BACnetDiscoveryHandler.setChannel(this);
 		localDevice.getEventHandler().addListener(new Listener());
-		Pair<String,String> context= new Pair<>("BACnet", "http://bacowl.sourceforge.net/2012/bacnet");
+		Pair<String, String> context = new Pair<>("BACnet", "http://bacowl.sourceforge.net/2012/bacnet");
 		bacnetContexts.add(context);
 	}
-	
+
 	public void close() {
 		localDevice.terminate();
 	}
@@ -145,9 +144,9 @@ public class BACnetChannel extends ChannelBase {
 		BACnetDiscoveryHandler.activeMode = activeMode;
 		localDevice.sendGlobalBroadcast(new WhoIsRequest());
 	}
-	
+
 	@Override
-	public void discoverFromFile(String filename){
+	public void discoverFromFile(String filename) {
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
@@ -156,7 +155,7 @@ public class BACnetChannel extends ChannelBase {
 		}
 		BACnetDiscoveryHandler.handleCreateFromTDFile(filename);
 	}
-	
+
 	public Collection<Thing> discoverSync(long timeout) throws Exception {
 		BACnetDiscoveryHandler.discoveredThings.clear();
 		localDevice.sendGlobalBroadcast(new WhoIsRequest());
@@ -165,66 +164,67 @@ public class BACnetChannel extends ChannelBase {
 	}
 
 	@Override
-	public Object read(Property property){
+	public Object read(Property property) {
 		String key = property.getMetadata().get("@id");
 		BACnetThingRelationship dopid = relationshipMap.get(key);
-        boolean containsMediaType = property.getMetadata().contains("encoding");
-        if(containsMediaType)
-        	return readPropertyValueAsObject(dopid.dev, dopid.oid, dopid.pid);
-        
-        Object result = readPropertyValueAsString(dopid.dev, dopid.oid, dopid.pid);
-        
-        new Thread(new Runnable() {
-				@Override
-				public void run() {}
-        }).start();
-        
-        if(property.isClientObserving && !property.isSubscribed){
-			BACnetThingRelationship subscriber = new BACnetThingRelationship(dopid.dev, dopid.oid, PropertyIdentifier.presentValue, (Thing)property.getTag(), property);
-        	BACnetSubscriptionHandler.subscribers.add(subscriber);
+		boolean containsMediaType = property.getMetadata().contains("encoding");
+		if (containsMediaType)
+			return readPropertyValueAsObject(dopid.dev, dopid.oid, dopid.pid);
+
+		Object result = readPropertyValueAsString(dopid.dev, dopid.oid, dopid.pid);
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+			}
+		}).start();
+
+		if (property.isClientObserving && !property.isSubscribed) {
+			BACnetThingRelationship subscriber = new BACnetThingRelationship(dopid.dev, dopid.oid,
+					PropertyIdentifier.presentValue, (Thing) property.getTag(), property);
+			BACnetSubscriptionHandler.subscribers.add(subscriber);
 			subscribeCOVAsync(dopid.dev, dopid.oid, 10000);
-        	property.isSubscribed = true;
-        }
-        else if(!property.isClientObserving && property.isSubscribed)
-        {
-			BACnetThingRelationship subscriber = new BACnetThingRelationship(dopid.dev, dopid.oid, PropertyIdentifier.presentValue, (Thing)property.getTag(), property);
-        	BACnetSubscriptionHandler.subscribers.remove(subscriber);
-        	subscribeCOVAsync(dopid.dev, dopid.oid,  -1);
-        	property.isSubscribed = false;
-        }
-        
+			property.isSubscribed = true;
+		} else if (!property.isClientObserving && property.isSubscribed) {
+			BACnetThingRelationship subscriber = new BACnetThingRelationship(dopid.dev, dopid.oid,
+					PropertyIdentifier.presentValue, (Thing) property.getTag(), property);
+			BACnetSubscriptionHandler.subscribers.remove(subscriber);
+			subscribeCOVAsync(dopid.dev, dopid.oid, -1);
+			property.isSubscribed = false;
+		}
+
 		return result;
 	}
 
 	@Override
-	public Object update(Property property, String jsonString){
+	public Object update(Property property, String jsonString) {
 		String key = property.getMetadata().get("@id");
 		return update(key, jsonString);
 	}
-	
-	public Object update(String id, String jsonString){
-	 	BACnetThingRelationship dopid = relationshipMap.get(id);
+
+	public Object update(String id, String jsonString) {
+		BACnetThingRelationship dopid = relationshipMap.get(id);
 		return writePropertyValue(dopid.dev, dopid.oid, dopid.pid, jsonString);
 	}
-	
-	//public Thing create(){}
-	
-	//public void delete(Thing thing){}
-	
+
+	// public Thing create(){}
+
+	// public void delete(Thing thing){}
+
 	@Override
-	public Content handleAction(ServedThing thing, Action action, Object inputData) throws BACnetException{
+	public Content handleAction(ServedThing thing, Action action, Object inputData) throws BACnetException {
 		int hrefCount = action.getHrefs().size();
 		String serviceType = action.getHrefs().get(hrefCount - 1);
 		String subResourceUrl = null;
-		if(serviceType.contains("SubscribeCOV"))
+		if (serviceType.contains("SubscribeCOV"))
 			subResourceUrl = BACnetSubscriptionHandler.handleSubscriptionRequest(thing, action, inputData);
-		else if(serviceType.contains("SubscribeEvents"))
+		else if (serviceType.contains("SubscribeEvents"))
 			subResourceUrl = BACnetEventHandler.handleSubscriptionRequest(thing, action, inputData);
-		else if(serviceType.contains("Acknowledge"))
+		else if (serviceType.contains("Acknowledge"))
 			BACnetEventHandler.handleAcknowledgementRequest(thing, action, inputData);
 		else
 			subResourceUrl = GenericActionHandler.handleActionRequest(thing, action, inputData, this);
-		
+
 		try {
 			URI url = new URI(subResourceUrl);
 			subResourceUrl = url.getPath();
@@ -232,17 +232,16 @@ public class BACnetChannel extends ChannelBase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		Content content = new Content("{\"error\":\"null\"}".getBytes(), MediaType.APPLICATION_JSON);
-		if(subResourceUrl != null){
+		if (subResourceUrl != null) {
 			content.setLocationPath(subResourceUrl);
 			content.setResponseType(Content.ResponseType.CREATED);
-		}else{
+		} else {
 			content.setResponseType(Content.ResponseType.UPDATED);
 		}
 		return content;
 	}
-	
 
 	class Listener extends DeviceEventAdapter {
 		@Override
@@ -252,71 +251,77 @@ public class BACnetChannel extends ChannelBase {
 			d.setSegmentationSupported(Segmentation.noSegmentation);
 			BACnetDiscoveryHandler.handleDeviceFound(d, localDevice);
 		}
-		
-        @Override
-        public void covNotificationReceived(UnsignedInteger subscriberProcessIdentifier, RemoteDevice initiatingDevice,
-                ObjectIdentifier monitoredObjectIdentifier, UnsignedInteger timeRemaining,
-                SequenceOf<PropertyValue> listOfValues) {
-            System.out.println("Received COV notification: " + listOfValues);
-            BACnetSubscriptionHandler.handleCovNotification(subscriberProcessIdentifier, initiatingDevice, monitoredObjectIdentifier, timeRemaining, listOfValues);
-        }		
-	
-        @Override
-        public void eventNotificationReceived(final UnsignedInteger processIdentifier, final RemoteDevice initiatingDevice,
-                final ObjectIdentifier eventObjectIdentifier, final TimeStamp timeStamp,
-                final UnsignedInteger notificationClass, final UnsignedInteger priority, final EventType eventType,
-                final CharacterString messageText, final NotifyType notifyType,
-                final com.serotonin.bacnet4j.type.primitive.Boolean ackRequired, final EventState fromState,
-                final EventState toState, final NotificationParameters eventValues) {
-            // Override as required
-        	System.out.println("Received event notification");
-        	BACnetEventHandler.processEventNotification(processIdentifier, initiatingDevice, eventObjectIdentifier, timeStamp, notificationClass, priority, eventType, messageText, notifyType, ackRequired, fromState, toState, eventValues);
-        }        
+
+		@Override
+		public void covNotificationReceived(UnsignedInteger subscriberProcessIdentifier, RemoteDevice initiatingDevice,
+				ObjectIdentifier monitoredObjectIdentifier, UnsignedInteger timeRemaining,
+				SequenceOf<PropertyValue> listOfValues) {
+			System.out.println("Received COV notification: " + listOfValues);
+			BACnetSubscriptionHandler.handleCovNotification(subscriberProcessIdentifier, initiatingDevice,
+					monitoredObjectIdentifier, timeRemaining, listOfValues);
+		}
+
+		@Override
+		public void eventNotificationReceived(final UnsignedInteger processIdentifier,
+				final RemoteDevice initiatingDevice, final ObjectIdentifier eventObjectIdentifier,
+				final TimeStamp timeStamp, final UnsignedInteger notificationClass, final UnsignedInteger priority,
+				final EventType eventType, final CharacterString messageText, final NotifyType notifyType,
+				final com.serotonin.bacnet4j.type.primitive.Boolean ackRequired, final EventState fromState,
+				final EventState toState, final NotificationParameters eventValues) {
+			// Override as required
+			System.out.println("Received event notification");
+			BACnetEventHandler.processEventNotification(processIdentifier, initiatingDevice, eventObjectIdentifier,
+					timeStamp, notificationClass, priority, eventType, messageText, notifyType, ackRequired, fromState,
+					toState, eventValues);
+		}
 	}
-	
+
 	protected int getRegisteredIndexInRecipientList(final RemoteDevice rd, ObjectIdentifier oid)
 			throws BACnetException {
 		boolean exists = false;
 		int index = 0;
-		if(oid.getObjectType().intValue() == ObjectType.notificationClass.intValue()){								
-			SequenceOf<Destination> existingRecipients = (SequenceOf<Destination>)readPropertyValueAsObject(rd, oid, PropertyIdentifier.recipientList);
-			
-			for(Destination d : existingRecipients)
-			{
+		if (oid.getObjectType().intValue() == ObjectType.notificationClass.intValue()) {
+			SequenceOf<Destination> existingRecipients = (SequenceOf<Destination>) readPropertyValueAsObject(rd, oid,
+					PropertyIdentifier.recipientList);
+
+			for (Destination d : existingRecipients) {
 				index++;
-				if(d.getRecipient().isDevice()){	
+				if (d.getRecipient().isDevice()) {
 					ObjectIdentifier addrObjId = d.getRecipient().getDevice();
 					exists = addrObjId.equals(localDeviceObjectId);
-					if(exists)
+					if (exists)
 						break;
-				}			
-			}			
-		}
-		return index;
-	}		
-	protected void registerAsEventRecipient(final RemoteDevice rd, ObjectIdentifier oid)
-			throws BACnetException {
-		if(oid.getObjectType().intValue() == ObjectType.notificationClass.intValue()){								
-			SequenceOf<Destination> existingRecipients = (SequenceOf<Destination>)readPropertyValueAsObject(rd, oid, PropertyIdentifier.recipientList);
-			boolean exists = (getRegisteredIndexInRecipientList(rd, oid) > 0);
-			if(!exists){
-				existingRecipients.add(new Destination(new Recipient(localDeviceObjectId), new UnsignedInteger(10), new Boolean(true),
-		            new EventTransitionBits(true, true, true)));
-				try {
-					RequestUtils.writeProperty(localDevice, rd, oid, PropertyIdentifier.recipientList, existingRecipients);
-				} catch (Exception e) {
-					//Ignore the exception..
-					//TODO find out how to handle
-					e.printStackTrace();
 				}
-				
 			}
 		}
-	}	
-	
-	protected void unRegisterAsEventRecipient(final RemoteDevice rd, ObjectIdentifier oid){
-		if(oid.getObjectType().intValue() == ObjectType.notificationClass.intValue()){								
-			SequenceOf<Destination> existingRecipients = (SequenceOf<Destination>)readPropertyValueAsObject(rd, oid, PropertyIdentifier.recipientList);
+		return index;
+	}
+
+	protected void registerAsEventRecipient(final RemoteDevice rd, ObjectIdentifier oid) throws BACnetException {
+		if (oid.getObjectType().intValue() == ObjectType.notificationClass.intValue()) {
+			SequenceOf<Destination> existingRecipients = (SequenceOf<Destination>) readPropertyValueAsObject(rd, oid,
+					PropertyIdentifier.recipientList);
+			boolean exists = (getRegisteredIndexInRecipientList(rd, oid) > 0);
+			if (!exists) {
+				existingRecipients.add(new Destination(new Recipient(localDeviceObjectId), new UnsignedInteger(10),
+						new Boolean(true), new EventTransitionBits(true, true, true)));
+				try {
+					RequestUtils.writeProperty(localDevice, rd, oid, PropertyIdentifier.recipientList,
+							existingRecipients);
+				} catch (Exception e) {
+					// Ignore the exception..
+					// TODO find out how to handle
+					e.printStackTrace();
+				}
+
+			}
+		}
+	}
+
+	protected void unRegisterAsEventRecipient(final RemoteDevice rd, ObjectIdentifier oid) {
+		if (oid.getObjectType().intValue() == ObjectType.notificationClass.intValue()) {
+			SequenceOf<Destination> existingRecipients = (SequenceOf<Destination>) readPropertyValueAsObject(rd, oid,
+					PropertyIdentifier.recipientList);
 			boolean exists = false;
 			int index = 0;
 			try {
@@ -325,214 +330,200 @@ public class BACnetChannel extends ChannelBase {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			if(index > 0 ){
+			if (index > 0) {
 				existingRecipients.remove(index);
 				try {
-					RequestUtils.writeProperty(localDevice, rd, oid, PropertyIdentifier.recipientList, existingRecipients);
+					RequestUtils.writeProperty(localDevice, rd, oid, PropertyIdentifier.recipientList,
+							existingRecipients);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				
-			}
-		}
-	}	
-	
 
-	
-
-/*	
-    private static void addPropertyReferences(PropertyReferences refs, ObjectIdentifier oid) {
-        refs.add(oid, PropertyIdentifier.objectName);
-
-        ObjectType type = oid.getObjectType();
-        if (ObjectType.accumulator.equals(type)) {
-            refs.add(oid, PropertyIdentifier.units);
-        }
-        else if (ObjectType.analogInput.equals(type) || ObjectType.analogOutput.equals(type)
-                || ObjectType.analogValue.equals(type) || ObjectType.pulseConverter.equals(type)) {
-            refs.add(oid, PropertyIdentifier.units);
-        }
-        else if (ObjectType.binaryInput.equals(type) || ObjectType.binaryOutput.equals(type)
-                || ObjectType.binaryValue.equals(type)) {
-            refs.add(oid, PropertyIdentifier.inactiveText);
-            refs.add(oid, PropertyIdentifier.activeText);
-        }
-        else if (ObjectType.lifeSafetyPoint.equals(type)) {
-            refs.add(oid, PropertyIdentifier.units);
-        }
-        else if (ObjectType.loop.equals(type)) {
-            refs.add(oid, PropertyIdentifier.outputUnits);
-        }
-        else if (ObjectType.multiStateInput.equals(type) || ObjectType.multiStateOutput.equals(type)
-                || ObjectType.multiStateValue.equals(type)) {
-            refs.add(oid, PropertyIdentifier.stateText);
-        }
-        else
-            return;
-
-        refs.add(oid, PropertyIdentifier.presentValue);
-    }	
-    */
-	/*
-	private void printObject(ObjectIdentifier oid, PropertyValues pvs) {
-		System.out.println(String.format("\t%s", oid));
-		for (ObjectPropertyReference opr : pvs) {
-			if (oid.equals(opr.getObjectIdentifier())) {
-				System.out.println(
-						String.format("\t\t%s = %s", opr.getPropertyIdentifier().toString(), pvs.getNoErrorCheck(opr)));
 			}
 		}
 	}
-	*/
-	
-	protected void subscribeCOVAsync(RemoteDevice d, ObjectIdentifier oid, int lifetime){
-		new Thread(){
+
+	/*
+	 * private static void addPropertyReferences(PropertyReferences refs,
+	 * ObjectIdentifier oid) { refs.add(oid, PropertyIdentifier.objectName);
+	 * 
+	 * ObjectType type = oid.getObjectType(); if
+	 * (ObjectType.accumulator.equals(type)) { refs.add(oid,
+	 * PropertyIdentifier.units); } else if (ObjectType.analogInput.equals(type)
+	 * || ObjectType.analogOutput.equals(type) ||
+	 * ObjectType.analogValue.equals(type) ||
+	 * ObjectType.pulseConverter.equals(type)) { refs.add(oid,
+	 * PropertyIdentifier.units); } else if (ObjectType.binaryInput.equals(type)
+	 * || ObjectType.binaryOutput.equals(type) ||
+	 * ObjectType.binaryValue.equals(type)) { refs.add(oid,
+	 * PropertyIdentifier.inactiveText); refs.add(oid,
+	 * PropertyIdentifier.activeText); } else if
+	 * (ObjectType.lifeSafetyPoint.equals(type)) { refs.add(oid,
+	 * PropertyIdentifier.units); } else if (ObjectType.loop.equals(type)) {
+	 * refs.add(oid, PropertyIdentifier.outputUnits); } else if
+	 * (ObjectType.multiStateInput.equals(type) ||
+	 * ObjectType.multiStateOutput.equals(type) ||
+	 * ObjectType.multiStateValue.equals(type)) { refs.add(oid,
+	 * PropertyIdentifier.stateText); } else return;
+	 * 
+	 * refs.add(oid, PropertyIdentifier.presentValue); }
+	 */
+	/*
+	 * private void printObject(ObjectIdentifier oid, PropertyValues pvs) {
+	 * System.out.println(String.format("\t%s", oid)); for
+	 * (ObjectPropertyReference opr : pvs) { if
+	 * (oid.equals(opr.getObjectIdentifier())) { System.out.println(
+	 * String.format("\t\t%s = %s", opr.getPropertyIdentifier().toString(),
+	 * pvs.getNoErrorCheck(opr))); } } }
+	 */
+
+	protected void subscribeCOVAsync(RemoteDevice d, ObjectIdentifier oid, int lifetime) {
+		new Thread() {
 			@Override
 			public void run() {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}				
+				}
 				subscribeCOV(d, oid, lifetime);
 			};
-		}.start();		
+		}.start();
 	}
-	
-	protected void subscribeCOV(RemoteDevice d, ObjectIdentifier oid, int lifetime){
-        SubscribeCOVRequest req = new SubscribeCOVRequest(new UnsignedInteger(0), oid, lifetime > -1 ? new Boolean(true) : null,
-                lifetime > -1 ? new UnsignedInteger(lifetime) : null);
-        localDevice.send(d, req);
+
+	protected void subscribeCOV(RemoteDevice d, ObjectIdentifier oid, int lifetime) {
+		SubscribeCOVRequest req = new SubscribeCOVRequest(new UnsignedInteger(0), oid,
+				lifetime > -1 ? new Boolean(true) : null, lifetime > -1 ? new UnsignedInteger(lifetime) : null);
+		localDevice.send(d, req);
 	}
-	
-	public void acknowledgeAlarm(BACnetEventData eventData, String ackSource) throws BACnetException{
-        TimeStamp now = new TimeStamp(new DateTime());
-        AcknowledgeAlarmRequest req = new AcknowledgeAlarmRequest( //
-                (UnsignedInteger) eventData.get("processIdentifier"), //
-                (ObjectIdentifier) eventData.get("eventObjectIdentifier"), //
-                (EventState) eventData.get("toState"), //
-                (TimeStamp) eventData.get("timeStamp"), //
-                new CharacterString(ackSource), //
-                now);
-        localDevice.send((RemoteDevice) eventData.get("initiatingDevice"), req).get();
+
+	public void acknowledgeAlarm(BACnetEventData eventData, String ackSource) throws BACnetException {
+		TimeStamp now = new TimeStamp(new DateTime());
+		AcknowledgeAlarmRequest req = new AcknowledgeAlarmRequest( //
+				(UnsignedInteger) eventData.get("processIdentifier"), //
+				(ObjectIdentifier) eventData.get("eventObjectIdentifier"), //
+				(EventState) eventData.get("toState"), //
+				(TimeStamp) eventData.get("timeStamp"), //
+				new CharacterString(ackSource), //
+				now);
+		localDevice.send((RemoteDevice) eventData.get("initiatingDevice"), req).get();
 	}
-	
+
 	private Object readPropertyValueAsString(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid) {
-		Object value = readPropertyValueAsObject(d,oid,pid);
-		if(value instanceof Encodable)
-			return ((Encodable)value).toJsonString();
-		if(value instanceof byte[]){
+		Object value = readPropertyValueAsObject(d, oid, pid);
+		if (value instanceof Encodable)
+			return ((Encodable) value).toJsonString();
+		if (value instanceof byte[]) {
 			JSONArray jsonArray = new JSONArray();
-			for(byte b : (byte[])value){
+			for (byte b : (byte[]) value) {
 				jsonArray.put(b);
 			}
 			return jsonArray.toString();
-		}
-		else
+		} else
 			return value.toString();
-		
 	}
-	
+
 	private Object readPropertyValueAsObject(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid) {
-		
-		if(oid.getObjectType().intValue() == ObjectType.trendLog.intValue() && pid.intValue() == PropertyIdentifier.logBuffer.intValue())
+
+		if (oid.getObjectType().intValue() == ObjectType.trendLog.intValue()
+				&& pid.intValue() == PropertyIdentifier.logBuffer.intValue())
 			return readRange(d, oid, pid);
-		
-		if(oid.getObjectType().intValue() == ObjectType.file.intValue())
+
+		if (oid.getObjectType().intValue() == ObjectType.file.intValue())
 			return readFile(d, oid, pid);
-		
+
 		ServiceFuture sf = localDevice.send(d, new ReadPropertyRequest(oid, pid));
 
 		ReadPropertyAck ack;
 		try {
 			ack = (ReadPropertyAck) sf.get();
 			return ack.getValue();
-			
-		} catch (BACnetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return e;
-		}		
-	}
-	
-	private Object readRange(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid){
-		ReadRangeRequest readRangeRequest = new ReadRangeRequest(oid, pid, null, new ByPosition(new UnsignedInteger(0), new SignedInteger(10)));
-		ServiceFuture sf = localDevice.send(d, readRangeRequest);
-		ReadRangeAck ack;
-		try {
-			ack = (ReadRangeAck) sf.get();
-			return ack.getItemData();			
+
 		} catch (BACnetException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return e;
 		}
 	}
-	
-	private Object readFile(RemoteDevice fileDev, ObjectIdentifier file, PropertyIdentifier pid){
-		try{
-			if(pid.intValue() == 1){
+
+	private Object readRange(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid) {
+		ReadRangeRequest readRangeRequest = new ReadRangeRequest(oid, pid, null,
+				new ByPosition(new UnsignedInteger(0), new SignedInteger(10)));
+		ServiceFuture sf = localDevice.send(d, readRangeRequest);
+		ReadRangeAck ack;
+		try {
+			ack = (ReadRangeAck) sf.get();
+			return ack.getItemData();
+		} catch (BACnetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return e;
+		}
+	}
+
+	private Object readFile(RemoteDevice fileDev, ObjectIdentifier file, PropertyIdentifier pid) {
+		try {
+			if (pid.intValue() == 1) {
 				ClassLoader classLoader = BACnetChannel.class.getClassLoader();
-				URL fileURL = classLoader.getResource("dxr.jpg");	
+				URL fileURL = classLoader.getResource("dxr.jpg");
 				File fi = new File(fileURL.getPath());
 				byte[] fileContent = Files.readAllBytes(fi.toPath());
 				return fileContent;
 			}
-			
-	        AtomicReadFileRequest request = new AtomicReadFileRequest(file, false, 0, 19973);
-	        ServiceFuture sf = localDevice.send(fileDev, request);
-	        if(sf.get() instanceof AtomicReadFileAck){
-		        AtomicReadFileAck response = (AtomicReadFileAck) sf.get();
-		
-		        System.out.println("eof: " + response.getEndOfFile());
-		        System.out.println("start: " + response.getFileStartPosition());
-		        System.out.println("data: " + new String(response.getFileData().getBytes()));
-		        System.out.println("length: " + response.getFileData().getBytes().length);
-		        String str = new String(response.getFileData().getBytes());
-		        return response.getFileData().getBytes();
-	        }
-	        return "Could not read";
-        }
-		catch (Exception e){
-        	return e;
-        }
+
+			AtomicReadFileRequest request = new AtomicReadFileRequest(file, false, 0, 19973);
+			ServiceFuture sf = localDevice.send(fileDev, request);
+			if (sf.get() instanceof AtomicReadFileAck) {
+				AtomicReadFileAck response = (AtomicReadFileAck) sf.get();
+
+				System.out.println("eof: " + response.getEndOfFile());
+				System.out.println("start: " + response.getFileStartPosition());
+				System.out.println("data: " + new String(response.getFileData().getBytes()));
+				System.out.println("length: " + response.getFileData().getBytes().length);
+				String str = new String(response.getFileData().getBytes());
+				return response.getFileData().getBytes();
+			}
+			return "Could not read";
+		} catch (Exception e) {
+			return e;
+		}
 	}
-	
+
 	public Object writePropertyValue(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid, String jsonString) {
 		try {
 			JsonNode node = jsonMapper.readTree(jsonString);
 			String encodableValue = jsonString;
 			UnsignedInteger priority = null, index = null;
-			if(node.has("value"))
+			if (node.has("value"))
 				encodableValue = node.get("value").toString();
-			if(node.has("priority"))
+			if (node.has("priority"))
 				priority = new UnsignedInteger(node.get("priority").asInt());
-			if(node.has("index"))
+			if (node.has("index"))
 				index = new UnsignedInteger(node.get("index").asInt());
-			
+
 			Encodable encodable = null;
-			if(encodableValue == "null"){
+			if (encodableValue == "null") {
 				encodable = new Null();
-			}else{
-				encodable = RequestUtils.readProperty(localDevice, d, oid, pid, null);		
+			} else {
+				encodable = RequestUtils.readProperty(localDevice, d, oid, pid, null);
 				encodable.updateFromJson(encodableValue);
 			}
-			
+
 			PropertyValue pv = new PropertyValue(pid, index, encodable, priority);
-			
+
 			RequestUtils.writeProperty(localDevice, d, oid, pv);
-			//RequestUtils.writeProperty(localDevice, d, oid, pid, encodable);
+			// RequestUtils.writeProperty(localDevice, d, oid, pid, encodable);
 			return null;
-			
+
 		} catch (BACnetException | IOException e) {
 			e.printStackTrace();
 			RuntimeException rte = new RuntimeException(e.getMessage());
-			if(e.getMessage().startsWith("Timeout"))
+			if (e.getMessage().startsWith("Timeout"))
 				return null;
 			return rte;
-		} 
-		
-	}	
+		}
+
+	}
 
 	protected void getExtendedDeviceInformation(RemoteDevice d) throws BACnetException {
 		ObjectIdentifier oid = d.getObjectIdentifier();
