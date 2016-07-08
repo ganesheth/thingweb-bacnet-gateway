@@ -1,5 +1,7 @@
 package ethz.ganeshr.wot.test.BACnet;
 
+import org.json.JSONObject;
+
 import com.serotonin.bacnet4j.RemoteDevice;
 import com.serotonin.bacnet4j.type.Encodable;
 import com.serotonin.bacnet4j.type.constructed.TimeStamp;
@@ -76,8 +78,12 @@ public class BACnetEventData {
 			return messageText;
 		else if(fieldName.equals("processIdentifier"))
 			return processIdentifier;
-		else if(fieldName.equals("initiatingDevice"))
-			return initiatingDevice;
+		else if(fieldName.equals("initiatingDevice")){
+			JSONObject obj = new JSONObject();
+			obj.put("instanceNumber", initiatingDevice.getInstanceNumber());
+			obj.put("address",initiatingDevice.getAddress().toJsonObject());
+			return obj;
+		}
 		else if(fieldName.equals("eventObjectIdentifier"))
 			return eventObjectIdentifier;
 		else if(fieldName.equals("timeStamp"))
