@@ -51,6 +51,15 @@
 			"@id": "1_1_57_85"
 		},
 		{
+			"@type": [ "BA:Output", "BACnet:AnalogOutputObject:presentValue" ],
+			"name": "Valve",
+			"_comment": "Issue: asymettric data types involved in read-write",
+			"writable": true,
+			"valueType": {"$ref":"BACtype:PropertyValueNumeric"},
+			"hrefs": [ "HVAC/CoolingCoil/Valve", "HVAC/CoolingCoil/Valve", "/1/1/58/85" ],
+			"@id": "1_1_58_85"
+		},
+		{
 			"@type": ["BACnet:AnalogOutputObject:priorityArray" ],
 			"name": "Fan output priority",
 			"_comment": "Example of an array whose elements are of hetrogenous types (sequence of BACnet::Any). Issue: type system",
@@ -80,7 +89,7 @@
         },
         {
             "@type": [ "BA:Output" ],
-            "name": "Light - current value of brightness",
+            "name": "Light1 - current value of brightness",
             "writable": false,
             "valueType": {"$ref":"BACtype:PropertyValueNumeric"},
             "hrefs": [ "Lighting/Light1/Brightness", "Lighting/Light1/Brightness", "1/2/224/85" ],
@@ -88,12 +97,28 @@
         },
         {
             "@type": [ "BA:Output" ],
-            "name": "Light - override value of brightness",
+            "name": "Light1 - override value of brightness",
             "writable": true,
             "valueType": {"$ref":"BACtype:PropertyValueNumeric"},
             "hrefs": [ "Lighting/Light1/BrightnessOverride", "Lighting/Light1/BrightnessOverride", "1/2/223/85" ],
             "@id": "1_2_223_85"
         },
+        {
+            "@type": [ "BA:Output" ],
+            "name": "Light21 - current value of brightness",
+            "writable": false,
+            "valueType": {"$ref":"BACtype:PropertyValueNumeric"},
+            "hrefs": [ "Lighting/Light2/Brightness", "Lighting/Light2/Brightness", "1/2/226/85" ],
+            "@id": "1_2_226_85"
+        },
+        {
+            "@type": [ "BA:Output" ],
+            "name": "Light2 - override value of brightness",
+            "writable": true,
+            "valueType": {"$ref":"BACtype:PropertyValueNumeric"},
+            "hrefs": [ "Lighting/Light2/BrightnessOverride", "Lighting/Light2/BrightnessOverride", "1/2/225/85" ],
+            "@id": "1_2_225_85"
+        },        
         {
             "@type": [ "BA:EnergyEfficiencyLevels", "BACnet:MultistateValueObject:presentValue" ],
             "name": "Room efficiency level",
