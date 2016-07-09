@@ -6,6 +6,9 @@ import java.util.Date;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.thingweb.desc.ThingDescriptionParser;
+import de.thingweb.discovery.TDRepository;
 import de.thingweb.servient.ServientBuilder;
 import de.thingweb.servient.ThingInterface;
 import de.thingweb.servient.ThingServer;
@@ -20,14 +23,15 @@ import ethz.ganeshr.wot.test.BACnet.BACnetChannelParam;
 import ethz.ganeshr.wot.test.KNX.KNXChannel;
 
 public class ServerMain {
-	
+
 	private static String tdfile = "room_h110_compliant_with_comments.jsonld";
-	
+
+	public static final TDRepository repo = new TDRepository();
+
 	public static void main(String[] args) throws Exception {
 		String bacip = null;
 		int bacport = 47808, httpport = 8080;
-		
-		
+
 		if (args.length > 0) {
 			int index = 0;
 			while (index < args.length) {
@@ -35,34 +39,34 @@ public class ServerMain {
 				if ("-usage".equals(arg) || "-help".equals(arg) || "-h".equals(arg) || "-?".equals(arg)) {
 					printUsage();
 				} else if ("-bacip".equals(arg)) {
-					bacip = args[index+1];
+					bacip = args[index + 1];
 				} else if ("-bacport".equals(arg)) {
-					bacport = Integer.parseInt(args[index+1]);
+					bacport = Integer.parseInt(args[index + 1]);
 				} else if ("-httpport".equals(arg)) {
-					httpport = Integer.parseInt(args[index+1]);
+					httpport = Integer.parseInt(args[index + 1]);
 				} else if ("-tdfile".equals(arg)) {
-					tdfile = args[index+1];
-				}  else {
-					System.err.println("Unknwon arg "+arg);
+					tdfile = args[index + 1];
+				} else {
+					System.err.println("Unknwon arg " + arg);
 					printUsage();
 				}
 				index += 2;
 			}
-		}	
+		}
 		ServerMain serverMain = new ServerMain(bacip, bacport, httpport);
-		
+
 		serverMain.start();
-		
-		 try {
-             System.in.read();
-             serverMain.stop();
-		 } catch (IOException e) {
-             e.printStackTrace();
-		 }
-		 System.exit(0);
-		
+
+		try {
+			System.in.read();
+			serverMain.stop();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.exit(0);
+
 	}
-	
+
 	private static void printUsage() {
 		System.out.println();
 		System.out.println("SYNOPSIS");
@@ -77,97 +81,106 @@ public class ServerMain {
 		System.out.println("	-tdfile filename");
 		System.out.println("		Filename of the ThingDescription to use.");
 		System.exit(0);
-	}	
-	
+	}
+
 	private final ThingServer server;
 	private static final Logger log = LoggerFactory.getLogger(ServerMain.class);
 	ChannelBase bacnetChannel = null;
 	ChannelBase knxChannel = null;
 	List<ChannelBase> channels = new ArrayList<>();
-	
-	public ServerMain(String bacnetAdapterIpAddr, int bacnetPort, int httpPort) throws Exception{
+
+	public ServerMain(String bacnetAdapterIpAddr, int bacnetPort, int httpPort) throws Exception {
 		ServientBuilder.getHttpBinding().setPort(httpPort);
 		ServientBuilder.initialize();
 		server = ServientBuilder.newThingServer();
 
-		if(bacnetAdapterIpAddr == null)
+		if (bacnetAdapterIpAddr == null)
 			bacnetChannel = new BACnetChannel();
 		else
-			bacnetChannel = new BACnetChannel(new BACnetChannelParam(bacnetAdapterIpAddr, bacnetPort));		
+			bacnetChannel = new BACnetChannel(new BACnetChannelParam(bacnetAdapterIpAddr, bacnetPort));
 
-		knxChannel = new KNXChannel();			
+		knxChannel = new KNXChannel();
 		channels.add(bacnetChannel);
-		//channels.add(knxChannel);		
+		// channels.add(knxChannel);
 	}
-	
-	public void start() throws Exception{
-		ServientBuilder.start();	
-		for(ChannelBase channel : channels){
-			channel.addThingFoundCallback((l)->{
-				List<Thing> things = (List<Thing>)l;
+
+	public void start() throws Exception {
+		ServientBuilder.start();
+		for (ChannelBase channel : channels) {
+			channel.addThingFoundCallback((l) -> {
+				List<Thing> things = (List<Thing>) l;
 				System.out.println(String.format("Discovery report %d new Things", things.size()));
-				
-				for(Thing thing : things){
-					if(thing == null)
+
+				for (Thing thing : things) {
+					if (thing == null)
 						log.error("null thing!");
-					else{
+					else {
+						log.info("Serving " + thing.getName());
 						ThingInterface thingIfc = server.addThing(thing);
 						thing.servedThing = thingIfc;
-						attachHandler(channel, (ServedThing)thingIfc);
+						attachHandler(channel, (ServedThing) thingIfc);
+
+						try {
+							String handle = repo.addTD("bt-demo", ThingDescriptionParser.toBytes(thing));
+							log.info("Registered under " + handle);
+						} catch (Exception e) {
+							log.error("Error during TD Repo registration: " + e.getMessage());
+						}
 					}
-				}			
+				}
 			});
-			
-			channel.addThingDeletedCallback((t)->{
-				server.removeThing((Thing)t);
+
+			channel.addThingDeletedCallback((t) -> {
+				server.removeThing((Thing) t);
 			});
-			
+
 			channel.open();
 			channel.discoverAsync(false);
 		}
 		bacnetChannel.discoverFromFile(tdfile);
-		//bacnetChannel.discoverFromFile("room_h110_compliant_with_comments.jsonld");
-		//knxChannel.discoverFromFile("knx_1.jsonld");
+		// bacnetChannel.discoverFromFile("room_h110_compliant_with_comments.jsonld");
+		// knxChannel.discoverFromFile("knx_1.jsonld");
 	}
-	
-	public void stop(){
+
+	public void stop() {
 		try {
-			for(ChannelBase channel : channels)
+			for (ChannelBase channel : channels)
 				channel.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	Date dummy;
-	public void attachHandler(ChannelBase channel, ServedThing thing){
+
+	public void attachHandler(ChannelBase channel, ServedThing thing) {
 		thing.onPropertyRead((input) -> {
-			Property property = (Property)input;
+			Property property = (Property) input;
 			log.info("Got a read");
 			Object result = "";
 			result = channel.read(property);
-			thing.setProperty(property, result);			
+			thing.setProperty(property, result);
 		});
-		
-		thing.onPropertyUpdate((p,v)->{
-			Property property = (Property)p;
-			Object result = channel.update(property, (String)v);
+
+		thing.onPropertyUpdate((p, v) -> {
+			Property property = (Property) p;
+			Object result = channel.update(property, (String) v);
 			return result;
 		});
-		
-		thing.onActionInvoke((a,p)->{
-			Action action = (Action)a;
+
+		thing.onActionInvoke((a, p) -> {
+			Action action = (Action) a;
 			Content content = new Content("{\"result\":\"sucess\"}".getBytes(), MediaType.APPLICATION_JSON);
 			try {
 				content = channel.handleAction(thing, action, p);
 			} catch (Exception e) {
 				e.printStackTrace();
-				content = new Content(("{\"error\":\""+ e.getMessage() + "\"}").getBytes(), MediaType.APPLICATION_JSON);
-				content.setResponseType(Content.ResponseType.ERROR);				
+				content = new Content(("{\"error\":\"" + e.getMessage() + "\"}").getBytes(),
+						MediaType.APPLICATION_JSON);
+				content.setResponseType(Content.ResponseType.ERROR);
 			}
 
 			return content;
 		});
-	}	
-
+	}
 }
