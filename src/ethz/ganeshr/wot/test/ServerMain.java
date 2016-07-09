@@ -25,7 +25,7 @@ public class ServerMain {
 	
 	public static void main(String[] args) throws Exception {
 		String bacip = null;
-		int bacport = 47808, httpport = 80;
+		int bacport = 47808, httpport = 8080;
 		
 		
 		if (args.length > 0) {
@@ -49,7 +49,7 @@ public class ServerMain {
 				index += 2;
 			}
 		}	
-		ServerMain serverMain = new ServerMain(bacip, bacport, 80);
+		ServerMain serverMain = new ServerMain(bacip, bacport, httpport);
 		
 		serverMain.start();
 		
