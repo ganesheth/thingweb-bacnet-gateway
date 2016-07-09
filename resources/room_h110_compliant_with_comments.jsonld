@@ -2,9 +2,9 @@
 	"@context": [
 		"http://w3c.github.io/wot/w3c-wot-td-context.jsonld",
 		"https://w3c.github.io/wot/w3c-wot-common-context.jsonld",
-		{"BACnet": "http://bacowl.sourceforge.net/2012/bacnet.ttl"},
-		{"BACtype": "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json"},
-		{"BA": "http://n.ethz.ch/student/ganeshr/bacnet/hvac_ont.owl"}
+		{"BACnet": "http://bacowl.sourceforge.net/2012/bacnet.ttl#/"},
+		{"BACtype": "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json#/"},
+		{"BA": "http://n.ethz.ch/student/ganeshr/bacnet/hvac_ont.owl#/"}
 	],
 	"name":"Room Automation CNB H110",
 	"uris":["CNB/H110/RoomAutomation", "CNB/H110/RoomAutomation", "bacnet://192.168.0.255:47808/"],
@@ -38,8 +38,8 @@
 			"max": 27,
 			"unit": "celsius",
 			"valueType": {"$ref":"BACtype:PropertyValueNumeric"},
-			"hrefs": ["HVAC/TemperatureSetpoint", "HVAC/TemperatureSetpoint", "/1/2/14/85"],
-			"@id": "1_2_14_85"
+			"hrefs": ["HVAC/TemperatureSetpoint", "HVAC/TemperatureSetpoint", "/1/2/41/85"],
+			"@id": "1_2_41_85"
 		},
 		{
 			"@type": [ "BA:Output", "BACnet:AnalogOutputObject:presentValue" ],
@@ -125,7 +125,7 @@
             "name": "Trend logging enable",
             "_comment": "Set this to false before changing start and end time",
             "writable": true,
-            "valueType": {"$ref":"BACtype:DateTime"},
+            "valueType": {"$ref":"BACtype:Boolean"},
 	        "hrefs": [ "HVAC/RoomTemperature/Trend/Enable", "HVAC/RoomTemperature/Trend/Enable", "/1/20/5/133" ],
 	        "@id": "1_20_5_133"
         },
