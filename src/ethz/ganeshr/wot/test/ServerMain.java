@@ -80,12 +80,17 @@ public class ServerMain {
 	}	
 	
 	private final ThingServer server;
-	private static final Logger log = LoggerFactory.getLogger(ServerMain.class);
+	private static final Logger log = LoggerFactory.getLogger(ServerMain.class);	
 	ChannelBase bacnetChannel = null;
 	ChannelBase knxChannel = null;
 	List<ChannelBase> channels = new ArrayList<>();
 	
 	public ServerMain(String bacnetAdapterIpAddr, int bacnetPort, int httpPort) throws Exception{
+		
+		//Setup log level
+		//ERROR > WARN > INFO > DEBUG > TRACE
+		//System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "ALL");
+		
 		ServientBuilder.getHttpBinding().setPort(httpPort);
 		ServientBuilder.initialize();
 		server = ServientBuilder.newThingServer();
@@ -105,7 +110,7 @@ public class ServerMain {
 		for(ChannelBase channel : channels){
 			channel.addThingFoundCallback((l)->{
 				List<Thing> things = (List<Thing>)l;
-				System.out.println(String.format("Discovery report %d new Things", things.size()));
+				log.info(String.format("Discovery report %d new Things", things.size()));
 				
 				for(Thing thing : things){
 					if(thing == null)
@@ -163,7 +168,7 @@ public class ServerMain {
 			} catch (Exception e) {
 				e.printStackTrace();
 				content = new Content(("{\"error\":\""+ e.getMessage() + "\"}").getBytes(), MediaType.APPLICATION_JSON);
-				content.setResponseType(Content.ResponseType.ERROR);				
+				content.setResponseType(Content.ResponseType.SERVER_ERROR);				
 			}
 
 			return content;

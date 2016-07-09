@@ -13,9 +13,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+
 import java.util.Map.Entry;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -213,33 +216,40 @@ public class BACnetChannel extends ChannelBase {
 
 	@Override
 	public Content handleAction(ServedThing thing, Action action, Object inputData) throws BACnetException {
-		int hrefCount = action.getHrefs().size();
-		String serviceType = action.getHrefs().get(hrefCount - 1);
-		String subResourceUrl = null;
-		if (serviceType.contains("SubscribeCOV"))
-			subResourceUrl = BACnetSubscriptionHandler.handleSubscriptionRequest(thing, action, inputData);
-		else if (serviceType.contains("SubscribeEvents"))
-			subResourceUrl = BACnetEventHandler.handleSubscriptionRequest(thing, action, inputData);
-		else if (serviceType.contains("Acknowledge"))
-			BACnetEventHandler.handleAcknowledgementRequest(thing, action, inputData);
-		else
-			subResourceUrl = GenericActionHandler.handleActionRequest(thing, action, inputData, this);
-
-		try {
+		Content content = new Content("{\"error\":\"null\"}".getBytes(), MediaType.APPLICATION_JSON);
+		try {		
+			int hrefCount = action.getHrefs().size();
+			String serviceType = action.getHrefs().get(hrefCount - 1);
+			String subResourceUrl = null;
+			if (serviceType.contains("SubscribeCOV"))
+				subResourceUrl = BACnetSubscriptionHandler.handleSubscriptionRequest(thing, action, inputData);
+			else if (serviceType.contains("SubscribeEvents"))
+				subResourceUrl = BACnetEventHandler.handleSubscriptionRequest(thing, action, inputData);
+			else if (serviceType.contains("Acknowledge"))
+				BACnetEventHandler.handleAcknowledgementRequest(thing, action, inputData);
+			else
+				subResourceUrl = GenericActionHandler.handleActionRequest(thing, action, inputData, this);
+			
 			URI url = new URI(subResourceUrl);
 			subResourceUrl = url.getPath();
+			if (subResourceUrl != null) {
+				content.setLocationPath(subResourceUrl);
+				content.setResponseType(Content.ResponseType.CREATED);
+			} else {
+				content.setResponseType(Content.ResponseType.UPDATED);
+			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			JSONObject obj = new JSONObject();
+			obj.put("error", e.getMessage());
+			String payload = obj.toString();
+			content = new Content(payload.getBytes(), MediaType.APPLICATION_JSON);
+			if(e instanceof JSONException)
+				content.setResponseType(Content.ResponseType.INVALID_REQUEST);
+			else
+				content.setResponseType(Content.ResponseType.SERVER_ERROR);
 			e.printStackTrace();
 		}
 
-		Content content = new Content("{\"error\":\"null\"}".getBytes(), MediaType.APPLICATION_JSON);
-		if (subResourceUrl != null) {
-			content.setLocationPath(subResourceUrl);
-			content.setResponseType(Content.ResponseType.CREATED);
-		} else {
-			content.setResponseType(Content.ResponseType.UPDATED);
-		}
 		return content;
 	}
 

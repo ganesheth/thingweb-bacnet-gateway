@@ -87,7 +87,7 @@ public class BACnetEventHandler {
 		hrefs.add("destination");
 		String bacnetHref = String.format("/%d/15/%d/102", rd.getInstanceNumber(), nc.getInstanceNumber()); //Href for Notification class recipient list.
 		hrefs.add("/1/15/8/102");
-		Property p = new Property("destination", "BACnet:RecipientList", true, false,  null, hrefs);
+		Property p = new Property("destination", wrapType("BACnet:RecipientList"), true, false,  null, hrefs);
 		String id = String.format("%d_15_%d_102", rd.getInstanceNumber(), nc.getInstanceNumber());
 		p.getMetadata().add("@id", id);
 		subThing.addProperty(p);
