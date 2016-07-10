@@ -37,7 +37,7 @@
 			"min": 21,
 			"max": 27,
 			"unit": "celsius",
-			"valueType": {"$ref":"BACtype:PropertyValueNumeric"},
+			"valueType": "xsd:float",
 			"hrefs": ["HVAC/TemperatureSetpoint", "HVAC/TemperatureSetpoint", "/1/2/41/85"],
 			"@id": "1_2_41_85"
 		},
@@ -203,9 +203,17 @@
 			"name": "BACType_BlindsControlActionMonitor",
 			"inputData": { "valueType": {"$ref":"BACtype:BlindsPosition"} },
 			"outputData": { "valueType": {"$ref":"BACtype:BlindsControlActionMonitor"} },
-			"hrefs": [ "Actions/BlindsControl", "Actions/BlindsControl", "/BlindsControlAction" ],
+			"hrefs": [ "Actions/BlindsControl1", "Actions/BlindsControl1", "/BlindsControlAction" ],
 			"@id": "1_258_22_85_CMD"
 		},
+		{
+			"_comment": "Vocabulary for @type unfinished",
+			"name": "BACType_BlindsControlActionMonitor2",
+			"inputData": { "valueType": {"$ref":"BACtype:BlindsPosition"} },
+			"outputData": { "valueType": {"$ref":"BACtype:BlindsControlActionMonitor"} },
+			"hrefs": [ "Actions/BlindsControl2", "Actions/BlindsControl2", "/BlindsControlAction" ],
+			"@id": "1_258_23_85_CMD"
+		},		
 		{
 			"_comment": "Vocabulary for @type unfinished",
 			"name": "BACType_TemperatureControlActionMonitor",

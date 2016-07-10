@@ -1,24 +1,24 @@
 {
 	"@context":["http://w3c.github.io/wot/w3c-wot-td-context.jsonld",{"BACtype":"http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json"}],
-	"name":"BlindsControlMonitor1",
-	"uris":["SubResources/ActionMonitors/BlindsControls1", "SubResources/ActionMonitors/BlindsControls1", "bacnet://192.168.0.255:47808/"],
+	"name":"BlindsControlMonitor2",
+	"uris":["SubResources/ActionMonitors/BlindsControls2", "SubResources/ActionMonitors/BlindsControls2", "bacnet://192.168.0.255:47808/"],
 	"@type":"HVAC:BlindsControlMonitor",
 	"encodings":"JSON",
-	"@id":"258_22",
+	"@id":"258_23",
 	"properties":[
 		{
       "name": "CurrentPosition",
 			"writable":false,
       "valueType": { "$ref": "BACtype:BlindsPosition" },
-			"hrefs":["CurPos", "CurPos", "/1/258/22/5083"],
-			"@id":"1_258_22_5083"
+			"hrefs":["CurPos", "CurPos", "/1/258/23/5083"],
+			"@id":"1_258_23_5083"
 		},
 		{
 			"name":"DesiredPosition",
 			"writable":true,
       "valueType": { "$ref": "BACtype:BlindsPosition" },
-			"hrefs":["SetPos", "SetPos", "/1/258/22/85"],
-			"@id":"1_258_22_85"
+			"hrefs":["SetPos", "SetPos", "/1/258/23/85"],
+			"@id":"1_258_23_85"
 		}
 	],
 	"actions":[],

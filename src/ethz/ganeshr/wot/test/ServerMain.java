@@ -88,18 +88,10 @@ public class ServerMain {
 	ChannelBase bacnetChannel = null;
 	ChannelBase knxChannel = null;
 	List<ChannelBase> channels = new ArrayList<>();
-<<<<<<< HEAD
-	
-	public ServerMain(String bacnetAdapterIpAddr, int bacnetPort, int httpPort) throws Exception{
-		
-		//Setup log level
-		//ERROR > WARN > INFO > DEBUG > TRACE
-		//System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "ALL");
-		
-=======
+
 
 	public ServerMain(String bacnetAdapterIpAddr, int bacnetPort, int httpPort) throws Exception {
->>>>>>> cacf573f4420e3fec347a815759a0436750846c4
+
 		ServientBuilder.getHttpBinding().setPort(httpPort);
 		ServientBuilder.initialize();
 		server = ServientBuilder.newThingServer();
@@ -113,18 +105,6 @@ public class ServerMain {
 		channels.add(bacnetChannel);
 		// channels.add(knxChannel);
 	}
-<<<<<<< HEAD
-	
-	public void start() throws Exception{
-		ServientBuilder.start();	
-		for(ChannelBase channel : channels){
-			channel.addThingFoundCallback((l)->{
-				List<Thing> things = (List<Thing>)l;
-				log.info(String.format("Discovery report %d new Things", things.size()));
-				
-				for(Thing thing : things){
-					if(thing == null)
-=======
 
 	public void start() throws Exception {
 		ServientBuilder.start();
@@ -135,7 +115,6 @@ public class ServerMain {
 
 				for (Thing thing : things) {
 					if (thing == null)
->>>>>>> cacf573f4420e3fec347a815759a0436750846c4
 						log.error("null thing!");
 					else {
 						log.info("Serving " + thing.getName());
@@ -198,14 +177,9 @@ public class ServerMain {
 				content = channel.handleAction(thing, action, p);
 			} catch (Exception e) {
 				e.printStackTrace();
-<<<<<<< HEAD
-				content = new Content(("{\"error\":\""+ e.getMessage() + "\"}").getBytes(), MediaType.APPLICATION_JSON);
-				content.setResponseType(Content.ResponseType.SERVER_ERROR);				
-=======
 				content = new Content(("{\"error\":\"" + e.getMessage() + "\"}").getBytes(),
 						MediaType.APPLICATION_JSON);
-				content.setResponseType(Content.ResponseType.ERROR);
->>>>>>> cacf573f4420e3fec347a815759a0436750846c4
+				content.setResponseType(Content.ResponseType.SERVER_ERROR);
 			}
 
 			return content;
