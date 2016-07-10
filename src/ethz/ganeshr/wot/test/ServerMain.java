@@ -27,10 +27,12 @@ public class ServerMain {
 	private static String tdfile = "room_h110_compliant_with_comments.jsonld";
 
 	public static final TDRepository repo = new TDRepository();
+	public static long lifetime;
 
 	public static void main(String[] args) throws Exception {
 		String bacip = null;
-		int bacport = 47808, httpport = 8080;
+		int bacport = 47808, httpport = 8080, coapport = 5683;
+		long lifetime = 30;
 
 		if (args.length > 0) {
 			int index = 0;
@@ -44,8 +46,12 @@ public class ServerMain {
 					bacport = Integer.parseInt(args[index + 1]);
 				} else if ("-httpport".equals(arg)) {
 					httpport = Integer.parseInt(args[index + 1]);
+				} else if ("-coapport".equals(arg)) {
+					coapport = Integer.parseInt(args[index + 1]);
 				} else if ("-tdfile".equals(arg)) {
 					tdfile = args[index + 1];
+				} else if ("-lifetime".equals(arg)) {
+					lifetime = Integer.parseInt(args[index + 1]);
 				} else {
 					System.err.println("Unknwon arg " + arg);
 					printUsage();
@@ -53,7 +59,7 @@ public class ServerMain {
 				index += 2;
 			}
 		}
-		ServerMain serverMain = new ServerMain(bacip, bacport, httpport);
+		ServerMain serverMain = new ServerMain(bacip, bacport, httpport, coapport, lifetime);
 
 		serverMain.start();
 
@@ -84,23 +90,27 @@ public class ServerMain {
 	}
 
 	private final ThingServer server;
-	private static final Logger log = LoggerFactory.getLogger(ServerMain.class);	
+	private static final Logger log = LoggerFactory.getLogger(ServerMain.class);
 	ChannelBase bacnetChannel = null;
 	ChannelBase knxChannel = null;
 	List<ChannelBase> channels = new ArrayList<>();
 
-
-	public ServerMain(String bacnetAdapterIpAddr, int bacnetPort, int httpPort) throws Exception {
+	public ServerMain(String bacnetAdapterIpAddr, int bacnetPort, int httpPort, int coapPort, long lifeTime)
+			throws Exception {
 
 		ServientBuilder.getHttpBinding().setPort(httpPort);
+		// ServientBuilder.getCoapBinding().setPort(coapPort);
 		ServientBuilder.initialize();
 		server = ServientBuilder.newThingServer();
 
-		if (bacnetAdapterIpAddr == null)
-			bacnetChannel = new BACnetChannel();
-		else
-			bacnetChannel = new BACnetChannel(new BACnetChannelParam(bacnetAdapterIpAddr, bacnetPort));
+		lifetime = lifeTime;
 
+		if (bacnetAdapterIpAddr == null) {
+			bacnetChannel = new BACnetChannel();
+		} else {
+			bacnetChannel = new BACnetChannel(new BACnetChannelParam(bacnetAdapterIpAddr, bacnetPort));
+		}
+		
 		knxChannel = new KNXChannel();
 		channels.add(bacnetChannel);
 		// channels.add(knxChannel);
@@ -123,8 +133,8 @@ public class ServerMain {
 						attachHandler(channel, (ServedThing) thingIfc);
 
 						try {
-							String handle = repo.addTD("bt-demo", ThingDescriptionParser.toBytes(thing));
-							log.info("Registered under " + handle);
+							String handle = repo.addTD("bt-demo", lifetime, ThingDescriptionParser.toBytes(thing));
+							log.info("Registered under " + handle + " for " + lifetime + " s");
 						} catch (Exception e) {
 							log.error("Error during TD Repo registration: " + e.getMessage());
 						}
@@ -177,8 +187,7 @@ public class ServerMain {
 				content = channel.handleAction(thing, action, p);
 			} catch (Exception e) {
 				e.printStackTrace();
-				content = new Content(("{\"error\":\"" + e.getMessage() + "\"}").getBytes(),
-						MediaType.APPLICATION_JSON);
+				content = new Content(("{\"error\":\"" + e.getMessage() + "\"}").getBytes(), MediaType.APPLICATION_JSON);
 				content.setResponseType(Content.ResponseType.SERVER_ERROR);
 			}
 
