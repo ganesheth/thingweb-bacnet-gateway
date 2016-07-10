@@ -6,7 +6,7 @@
 		{"BACtype": "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json#/"},
 		{"BA": "http://n.ethz.ch/student/ganeshr/bacnet/hvac_ont.owl#/"}
 	],
-	"name":"Room Automation CNB H110",
+	"name":"BACnet Thing",
 	"uris":["CNB/H110/RoomAutomation", "CNB/H110/RoomAutomation", "bacnet://192.168.0.255:47808/"],
 	"encodings": "JSON",
 	"@id":"1_0_93",
