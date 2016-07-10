@@ -37,7 +37,7 @@
 			"min": 21,
 			"max": 27,
 			"unit": "celsius",
-			"valueType": "xsd:float",
+			"valueType": {"$ref":"BACtype:PropertyValueNumeric"},
 			"hrefs": ["HVAC/TemperatureSetpoint", "HVAC/TemperatureSetpoint", "/1/2/41/85"],
 			"@id": "1_2_41_85"
 		},
