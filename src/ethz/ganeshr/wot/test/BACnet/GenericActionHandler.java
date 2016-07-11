@@ -11,6 +11,7 @@ import com.serotonin.bacnet4j.exception.BACnetException;
 
 import de.thingweb.servient.impl.ServedThing;
 import de.thingweb.thing.Action;
+import de.thingweb.thing.HyperMediaLink;
 import de.thingweb.thing.Thing;
 import ethz.ganeshr.wot.test.ServerMain;
 
@@ -49,14 +50,22 @@ public class GenericActionHandler {
 
 		String templateFile = action.getName() + ".jsonld";
 		Thing createdThing = BACnetDiscoveryHandler.handleCreateFromTDFile(templateFile);
+		String uri = createdThing.getMetadata().getAll("uris").get(0);
 		String affectedPropertyId = action.getMetadata().get("@id").replace("_CMD", "");
 		channel.update(affectedPropertyId, (String)inputData);
+		final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
+		if(action != null){				
+			action.getMetadata().getAssociations().add(childLink);
+		}
 		createdThing.setDeleteCallback((dp)->{
+			if(action != null){
+				action.getMetadata().getAssociations().remove(childLink);
+			}
 			channel.update(affectedPropertyId, "{\"value\":null, \"priority\":8}");
 			channel.reportDeletion(createdThing);
 		});
 		
-		return createdThing.getMetadata().getAll("uris").get(0);
+		return uri;
 	}
 	
 }

@@ -217,10 +217,10 @@
 		{
 			"_comment": "Vocabulary for @type unfinished",
 			"name": "BACType_TemperatureControlActionMonitor",
-			"inputData": { "valueType": {"$ref":"BACtype:Real"} },
+			"inputData": { "valueType": {"$ref":"BACtype:PropertyValueNumeric"} },
 			"outputData": { "valueType": {"$ref":"BACtype:TemperatureControlActionMonitor"} },
 			"hrefs": [ "Actions/TemperatureControl", "Actions/TemperatureControl", "/TemperatureControlAction" ],
-			"@id": "1_2_14_85_CMD"
+			"@id": "1_2_41_85_CMD"
 		}			   		
 	],
 	"events":[
