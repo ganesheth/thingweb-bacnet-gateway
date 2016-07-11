@@ -502,17 +502,23 @@ public class BACnetChannel extends ChannelBase {
 	public Object writePropertyValue(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid, String jsonString) {
 		try {
 			JsonNode node = jsonMapper.readTree(jsonString);
-			String encodableValue = jsonString;
+			String encodableValue = null;
 			UnsignedInteger priority = null, index = null;
 			if (node.has("value"))
-				encodableValue = node.get("value").toString();
+			{
+				if(node.get("value").toString().contains("null")){
+					encodableValue = null;
+				}else{
+					encodableValue = node.get("value").toString();
+				}
+			}
 			if (node.has("priority"))
 				priority = new UnsignedInteger(node.get("priority").asInt());
 			if (node.has("index"))
 				index = new UnsignedInteger(node.get("index").asInt());
 
 			Encodable encodable = null;
-			if (encodableValue == "null") {
+			if (encodableValue == null) {
 				encodable = new Null();
 			} else {
 				encodable = RequestUtils.readProperty(localDevice, d, oid, pid, null);

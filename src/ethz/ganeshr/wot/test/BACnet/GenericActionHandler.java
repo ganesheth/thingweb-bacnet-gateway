@@ -53,34 +53,29 @@ public class GenericActionHandler {
 
 		String templateFile = action.getName() + ".jsonld";
 		Thing createdThing = BACnetDiscoveryHandler.handleCreateFromTDFile(templateFile);
-		List<String> uris = createdThing.getMetadata().getAll("uris");
-		String affectedPropertyId = action.getMetadata().get("@id").replace("_CMD", "");
-		channel.update(affectedPropertyId, (String)inputData);
+		String uri = createdThing.getMetadata().getAll("uris").get(0);
+		try{
+			URI u = new URI(uri);
+			uri = u.getPath();
+		}catch(Exception e){}
 		
-		final Collection<HyperMediaLink> childLinks = new ArrayList<>();		
-		for(String uri : uris){
-			final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
-			childLinks.add(childLink);
-		}
+		String affectedPropertyId = action.getMetadata().get("@id").replace("_CMD", "");
+		channel.update(affectedPropertyId, (String)inputData);	
+
+		final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
 		
 		if(action != null){				
-			action.getMetadata().getAssociations().addAll(childLinks);
+			action.getMetadata().getAssociations().add(childLink);
 		}
 		createdThing.setDeleteCallback((dp)->{
 			if(action != null){
-				action.getMetadata().getAssociations().removeAll(childLinks);
+				action.getMetadata().getAssociations().remove(childLink);
 			}
 			channel.update(affectedPropertyId, "{\"value\":null, \"priority\":8}");
 			channel.reportDeletion(createdThing);
 		});
 		
-		try {
-			URI uri = new URI(uris.get(0));
-			return uri.getPath();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-			return uris.get(0);
-		}
+		return uri;
 		
 	}
 	
