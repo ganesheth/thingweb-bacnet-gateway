@@ -1,7 +1,9 @@
 package ethz.ganeshr.wot.test.BACnet;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -95,14 +97,20 @@ public class BACnetEventHandler {
 		BACnetThingRelationship dopid = new BACnetThingRelationship(rd, nc, PropertyIdentifier.recipientList, subThing, p);
 		channel.relationshipMap.put(p.getMetadata().get("@id"), dopid);
 		
-		final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
+		final Collection<HyperMediaLink> childLinks = new ArrayList<>();	
+		List<String> uris = subThing.getMetadata().getAll("uris");
+		for(String u : uris){
+			final HyperMediaLink childLink = new HyperMediaLink("child", u, "GET", "application/.td+jsonld");	
+			childLinks.add(childLink);
+		}
+		
 		if(action != null){				
-			action.getMetadata().getAssociations().add(childLink);
+			action.getMetadata().getAssociations().addAll(childLinks);
 		}
 		
 		subThing.setDeleteCallback((dp)->{
 				if(action != null){
-					action.getMetadata().getAssociations().remove(childLink);
+					action.getMetadata().getAssociations().removeAll(childLinks);
 				}
 				channel.unRegisterAsEventRecipient(rd, nc);
 				channel.reportDeletion(subThing);

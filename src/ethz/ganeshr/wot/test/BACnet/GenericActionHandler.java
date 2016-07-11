@@ -4,6 +4,9 @@ package ethz.ganeshr.wot.test.BACnet;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.json.JSONObject;
 
@@ -50,22 +53,35 @@ public class GenericActionHandler {
 
 		String templateFile = action.getName() + ".jsonld";
 		Thing createdThing = BACnetDiscoveryHandler.handleCreateFromTDFile(templateFile);
-		String uri = createdThing.getMetadata().getAll("uris").get(0);
+		List<String> uris = createdThing.getMetadata().getAll("uris");
 		String affectedPropertyId = action.getMetadata().get("@id").replace("_CMD", "");
 		channel.update(affectedPropertyId, (String)inputData);
-		final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
+		
+		final Collection<HyperMediaLink> childLinks = new ArrayList<>();		
+		for(String uri : uris){
+			final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
+			childLinks.add(childLink);
+		}
+		
 		if(action != null){				
-			action.getMetadata().getAssociations().add(childLink);
+			action.getMetadata().getAssociations().addAll(childLinks);
 		}
 		createdThing.setDeleteCallback((dp)->{
 			if(action != null){
-				action.getMetadata().getAssociations().remove(childLink);
+				action.getMetadata().getAssociations().removeAll(childLinks);
 			}
 			channel.update(affectedPropertyId, "{\"value\":null, \"priority\":8}");
 			channel.reportDeletion(createdThing);
 		});
 		
-		return uri;
+		try {
+			URI uri = new URI(uris.get(0));
+			return uri.getPath();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+			return uris.get(0);
+		}
+		
 	}
 	
 }

@@ -1,6 +1,8 @@
 package ethz.ganeshr.wot.test.BACnet;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import org.json.JSONObject;
@@ -88,14 +90,20 @@ public class BACnetSubscriptionHandler {
 		BACnetThingRelationship subscriber = new BACnetThingRelationship(rd, oid, PropertyIdentifier.presentValue, subThing, valueProperty);
 		subscribers.add(subscriber);
 		
-		final HyperMediaLink childLink = new HyperMediaLink("child", uri, "GET", "application/.td+jsonld");	
+		final Collection<HyperMediaLink> childLinks = new ArrayList<>();	
+		List<String> uris = subThing.getMetadata().getAll("uris");
+		for(String u : uris){
+			final HyperMediaLink childLink = new HyperMediaLink("child", u, "GET", "application/.td+jsonld");	
+			childLinks.add(childLink);
+		}
+		
 		if(action != null){				
-			action.getMetadata().getAssociations().add(childLink);
+			action.getMetadata().getAssociations().addAll(childLinks);
 		}
 		
 		subThing.setDeleteCallback((dp)->{
 				if(action != null){
-					action.getMetadata().getAssociations().remove(childLink);
+					action.getMetadata().getAssociations().removeAll(childLinks);
 				}
 				channel.subscribeCOV(rd, oid,  -1);
 				channel.reportDeletion(subThing);
