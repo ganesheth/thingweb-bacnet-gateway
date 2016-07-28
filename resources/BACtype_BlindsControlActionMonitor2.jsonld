@@ -4,21 +4,21 @@
 	"uris":["SubResources/ActionMonitors/BlindsControls2", "SubResources/ActionMonitors/BlindsControls2", "bacnet://192.168.0.255:47808/"],
 	"@type":"HVAC:BlindsControlMonitor",
 	"encodings":"JSON",
-	"@id":"258_23",
+	"@id":"258_6",
 	"properties":[
 		{
       "name": "CurrentPosition",
 			"writable":false,
       "valueType": { "$ref": "BACtype:BlindsPosition" },
-			"hrefs":["CurPos", "CurPos", "/1/258/23/5083"],
-			"@id":"1_258_23_5083"
+			"hrefs":["CurPos", "CurPos", "/201/258/6/5083"],
+			"@id":"201_258_6_5083"
 		},
 		{
 			"name":"DesiredPosition",
 			"writable":true,
       "valueType": { "$ref": "BACtype:BlindsPosition" },
-			"hrefs":["SetPos", "SetPos", "/1/258/23/85"],
-			"@id":"1_258_23_85"
+			"hrefs":["SetPos", "SetPos", "/201/258/6/85"],
+			"@id":"201_258_6_85"
 		}
 	],
 	"actions":[],

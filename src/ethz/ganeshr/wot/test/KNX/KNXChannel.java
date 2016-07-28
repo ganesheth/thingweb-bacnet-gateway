@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.directory.InvalidAttributesException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.serotonin.bacnet4j.RemoteDevice;
 import com.serotonin.bacnet4j.type.enumerated.ObjectType;
 import com.serotonin.bacnet4j.type.enumerated.PropertyIdentifier;
@@ -27,6 +30,7 @@ import ethz.ganeshr.wot.test.ChannelBase;
 import ethz.ganeshr.wot.test.ServerMain;
 import ethz.ganeshr.wot.test.BACnet.BACnetDiscoveryHandler;
 import ethz.ganeshr.wot.test.BACnet.BACnetThingRelationship;
+import javafx.util.Pair;
 import tuwien.auto.calimero.DetachEvent;
 import tuwien.auto.calimero.GroupAddress;
 import tuwien.auto.calimero.IndividualAddress;
@@ -45,11 +49,10 @@ import tuwien.auto.calimero.Util;
 
 public class KNXChannel extends ChannelBase {
 	
-	KNXDiscoveryHandler discoveryHandler = new KNXDiscoveryHandler();
-	
+	private KNXDiscoveryHandler discoveryHandler = new KNXDiscoveryHandler();	
 	private ProcessCommunicator pc;
-	private KNXNetworkLink link;
-	private boolean doingRead = false;
+	private KNXNetworkLink link;	
+	private List<Thing> mDiscoveredThings = new ArrayList<Thing>();
 	
 	@Override
 	public void open() throws Exception
@@ -59,27 +62,41 @@ public class KNXChannel extends ChannelBase {
 		pc = new ProcessCommunicatorImpl(link);
 		pc.setResponseTimeout(5);
 		pc.setPriority(Priority.LOW);
+		subscribeToConnectionEvents();
+	}
+	
+	@Override
+	public void close(){
+		pc.detach();
+		link.close();
+	}
+	
+	private void subscribeToConnectionEvents(){
 		pc.addProcessListener(new ProcessListener(){
-
 			@Override
 			public void groupWrite(ProcessEvent e) {
-				// TODO Auto-generated method stub
-				System.out.println("A group write was detected " );
+				System.out.print("A group write was detected " );
 				try{
-					if(e.getServiceCode() == 0x80 && e.getDestination().equals(new GroupAddress("6/1/1"))){
-						System.out.println("Eis ächti notification?" );
-						ServedThing st = (ServedThing)KNXDiscoveryHandler.theThing.servedThing;
-						Property property = (Property) st.getThingModel().getProperty("Output");
-						new Thread(new Runnable() {
-							@Override
-							public void run() {
-								Object o = read(property);
-								property.isUnderAsyncUpdate = true;
-								st.setProperty(property, o);
-								property.isUnderAsyncUpdate = false;
-							}
-						}).start();	
+					if(e.getServiceCode() == 0x80 ){
+						String address = e.getDestination().toString();
+						System.out.print("Address:" + address);
+						List<Pair<ServedThing, Property>> properties = findPropertiesWithAddress(address);
+						for(Pair<ServedThing, Property> servedProperty : properties){
+							ServedThing st = servedProperty.getKey();
+							Property property = servedProperty.getValue();
+							System.out.print(" Property:" + property.getName());
+							new Thread(new Runnable() {
+								@Override
+								public void run() {
+									Object o = read(property);
+									property.isUnderAsyncUpdate = true;
+									st.setProperty(property, o);
+									property.isUnderAsyncUpdate = false;
+								}
+							}).start();	
+						}
 					}
+					System.out.println(".");
 				}catch (Exception ex){} 
 				
 			}
@@ -91,10 +108,17 @@ public class KNXChannel extends ChannelBase {
 			}});
 	}
 	
-	@Override
-	public void close(){
-		pc.detach();
-		link.close();
+
+	private List<Pair<ServedThing, Property>> findPropertiesWithAddress(String address){
+		List<Pair<ServedThing, Property>> properties = new ArrayList<>();
+		for(Thing thing : mDiscoveredThings){
+			for(Property property : thing.getProperties()){
+				String knxHref = (String)property.getTag();				
+				if(knxHref.compareTo(address)== 0)
+					properties.add(new Pair<ServedThing, Property>((ServedThing) thing.servedThing, property));
+			}
+		}
+		return properties;
 	}
 	
 	@Override
@@ -119,13 +143,15 @@ public class KNXChannel extends ChannelBase {
 			for(Property prop : knxThing.getProperties()){
 				List<String> hrefs = prop.getHrefs();
 				String knxHref = hrefs.get(uriIndex);
-				
+				prop.setTag(knxHref); //We store the KNX address as tag for later lookup in findPropertiesWithAddress;
 				URI href = new URI(knxHref, true);
 				if(!href.isAbsoluteURI())
 					href.absolutize(uri);
 
 			}
 			super.reportDiscovery(knxThing);
+			
+			mDiscoveredThings.add(knxThing);
 			
 			
 		} catch (FileNotFoundException e) {
@@ -172,16 +198,25 @@ public class KNXChannel extends ChannelBase {
 
 	@Override
 	public Object read(Property property) {
-		doingRead = true;
 		String groupId = property.getHrefs().get(2);
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode node = mapper.createObjectNode();
 		try{
 			System.out.println("group read" );
 			GroupAddress grpAddr = new GroupAddress(groupId);
-			boolean result = pc.readBool(grpAddr);
-			doingRead = false;
-			return result ? "true" : "false";
+			if(property.getValueType().contains("DPT_BOOL")){
+				boolean result = pc.readBool(grpAddr);		
+				node.put("value", result);
+				return node.toString();
+			}
+			if(property.getValueType().contains("DPT_VALUE")){
+				float result = pc.readFloat(grpAddr);
+				node.put("value", result);
+				return node.toString();
+			}
+			return new RuntimeException("Cannot find KNX datatype to write");
 		}catch (Exception e){
-			return "Error";
+			return new RuntimeException(e.getMessage());
 		}
 	}
 
@@ -192,13 +227,23 @@ public class KNXChannel extends ChannelBase {
 			GroupAddress grpAddr = new GroupAddress(groupId);
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode node = mapper.readTree(value);
-			if(!node.isBoolean())
-				return new RuntimeException("Payload is not a boolean value. Expected {\"value\":<boolean>}");
-			boolean val = node.asBoolean();
-			pc.write(grpAddr, val);
-			return "ok";
+			ObjectNode responseNode = mapper.createObjectNode();
+			responseNode.put("result", "changed");
+			if(property.getValueType().contains("DPT_BOOL")){
+				if(!node.isBoolean())
+					return new RuntimeException("Payload is not a boolean value. Expected {\"value\":<boolean>}");
+				boolean val = node.asBoolean();
+				pc.write(grpAddr, val);
+				return responseNode.toString();
+			}
+			if(property.getValueType().contains("DPT_VALUE")){
+				double val = node.get("value").asDouble();
+				pc.write(grpAddr, (int)val);
+				return responseNode.toString();
+			}	
+			return new RuntimeException("Cannot find KNX datatype to write");
 		}catch (Exception e){
-			return e;
+			return new RuntimeException(e.getMessage());
 		}
 	}
 

@@ -502,7 +502,7 @@ public class BACnetChannel extends ChannelBase {
 	public Object writePropertyValue(RemoteDevice d, ObjectIdentifier oid, PropertyIdentifier pid, String jsonString) {
 		try {
 			JsonNode node = jsonMapper.readTree(jsonString);
-			String encodableValue = null;
+			String encodableValue = jsonString;
 			UnsignedInteger priority = null, index = null;
 			if (node.has("value"))
 			{

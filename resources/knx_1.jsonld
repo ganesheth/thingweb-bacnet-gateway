@@ -2,33 +2,46 @@
     "@context": [
         "http://w3c.github.io/wot/w3c-wot-td-context.jsonld",        
         { "knx": "http://n.ethz.ch/student/ganeshr/bacnet/knxtypes.json" },
-        { "BA": "http://n.ethz.ch/student/ganeshr/bacnet/hvac_ont.owl" }
+        { "BA": "http://n.ethz.ch/student/ganeshr/bacnet/hvac_ont.owl" },
+        {"ex": "https://example.com/things/"}
     ],
-	"name":"Room 1",
+	"name":"KNX Device",
 	"uris":["CNB/Floor_H/Corridor", "CNB/Floor_H/Corridor", "knxip://192.168.0.101/"],
 	"@type":"knx:LSAB",
 	"encodings":"JSON",
-	"@id":"cnb_flh_h_light",
+	"@id":"ex:cnb_flh_h_common",
 	"properties":[
         {
             "@type": "BA:Output",
-            "name": "relay",
+            "name": "Dimmer",
+            "unit": "%",
             "writable": true,
-            "valueType": "knx:DPT_SWITCH",
-            "hrefs": [ "Light", "Light", "6/1/1" ],
-            "@id": "6_1_1"
+            "valueType": "knx:DPT_VALUE",
+            "hrefs": [ "Dimmer", "Dimmer", "4/4/2" ],
+            "@id": "4_4_2"
         },
         {
-            "@type": "BA:Input",
-            "name": "light sensor",
+            "@type": "BA:Sensor",
+            "name": "Light level",
             "writable": false,
+            "observable":true,
+            "unit": "Lux",
             "valueType": "knx:DPT_VALUE",
             "hrefs": [ "LightLevel", "LightLevel", "4/5/4" ],
-            "@id": "6_1_1"
+            "@id": "4_5_4"
         },
         {
-            "@type": "BA:Input",
-            "name": "Presence detector",
+            "@type": "BA:Sensor",
+            "name": "Temperature",
+            "writable": false,
+            "unit": "C",
+            "valueType": "knx:DPT_VALUE",
+            "hrefs": [ "Temperature", "Temperature", "4/6/1" ],
+            "@id": "4_6_1"
+        },
+        {
+            "@type": "BA:Sensor",
+            "name": "Motion",
             "writable": false,
             "valueType": "knx:DPT_BOOL",
             "hrefs": [ "PresenceDetection", "PresenceDetection", "4/5/1" ],

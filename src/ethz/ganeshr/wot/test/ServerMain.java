@@ -26,13 +26,13 @@ public class ServerMain {
 
 	private static String tdfile = "room_h110_compliant_with_comments.jsonld";
 
-	public static final TDRepository repo = new TDRepository();
+	public static final TDRepository repo = new TDRepository("http://localhost:8088");
 	public static long lifetime;
 
 	public static void main(String[] args) throws Exception {
 		String bacip = null;
 		int bacport = 47808, httpport = 8080, coapport = 5683;
-		long lifetime = 30;
+		long lifetime = 6000;
 
 		if (args.length > 0) {
 			int index = 0;
@@ -113,7 +113,7 @@ public class ServerMain {
 		
 		knxChannel = new KNXChannel();
 		channels.add(bacnetChannel);
-		// channels.add(knxChannel);
+		channels.add(knxChannel);
 	}
 
 	public void start() throws Exception {
@@ -133,7 +133,7 @@ public class ServerMain {
 						attachHandler(channel, (ServedThing) thingIfc);
 
 						try {
-							String handle = repo.addTD("bt-demo", lifetime, ThingDescriptionParser.toBytes(thing));
+							String handle = repo.addTD(thing.getMetadata().get("@id"), lifetime, ThingDescriptionParser.toBytes(thing));
 							log.info("Registered under " + handle + " for " + lifetime + " s");
 						} catch (Exception e) {
 							log.error("Error during TD Repo registration: " + e.getMessage());
@@ -151,7 +151,7 @@ public class ServerMain {
 		}
 		bacnetChannel.discoverFromFile(tdfile);
 		// bacnetChannel.discoverFromFile("room_h110_compliant_with_comments.jsonld");
-		// knxChannel.discoverFromFile("knx_1.jsonld");
+		knxChannel.discoverFromFile("knx_1.jsonld");
 	}
 
 	public void stop() {
