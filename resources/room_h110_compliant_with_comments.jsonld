@@ -1,10 +1,10 @@
 {
 	"@context": [
 		"http://w3c.github.io/wot/w3c-wot-td-context.jsonld#",
-		{"com": "https://w3c.github.io/wot/w3c-wot-common-context.jsonld#/"},
-		{"BACnet": "http://bacowl.sourceforge.net/2012/bacnet.ttl#/"},
-		{"BACtype": "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json#/"},
-		{"BA": "http://n.ethz.ch/student/ganeshr/ontologies/ba_ont.owl#/"},
+		{"com": "https://w3c.github.io/wot/w3c-wot-common-context.jsonld#"},
+		{"BACnet": "http://bacowl.sourceforge.net/2012/bacnet.ttl#"},
+		{"BACtype": "http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json#"},
+		{"BA": "http://n.ethz.ch/student/ganeshr/ontologies/ba_ont.owl#"},
 		{"ex": "https://example.com/things/"}
 	],
 	"name":"BACnet Device",

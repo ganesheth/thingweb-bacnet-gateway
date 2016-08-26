@@ -13,20 +13,38 @@
 	"properties":[
         {
             "@type": "BA:Output",
-            "name": "Dimmer",
+            "name": "Dimmer output",
             "unit": "%",
             "writable": true,
-            "valueType": "knx:DPT_VALUE",
-            "hrefs": [ "Dimmer", "Dimmer", "4/4/2" ],
+            "valueType": "knx:DPT_UINT",
+            "hrefs": [ "Dimmer/Command", "Dimmer/Command", "4/4/2" ],
             "@id": "4_4_2"
         },
+        {
+            "@type": "BA:Input",
+            "name": "Dimmer",
+            "unit": "%",
+            "writable": false,
+            "observable":true,
+            "valueType": "knx:DPT_UINT",
+            "hrefs": [ "Dimmer/Status", "Dimmer/Status", "4/4/5" ],
+            "@id": "4_4_5"
+        },
+        {
+            "@type": "BA:Output",
+            "name": "Dimmer switch output",
+            "writable": true,
+            "valueType": "knx:DPT_BOOL",
+            "hrefs": [ "Dimmer/Switch", "Dimmer/Switch", "4/4/1" ],
+            "@id": "4_4_1"
+        },               
         {
             "@type": "BA:Sensor",
             "name": "Light level",
             "writable": false,
             "observable":true,
             "unit": "Lux",
-            "valueType": "knx:DPT_VALUE",
+            "valueType": "knx:DPT_FLOAT",
             "hrefs": [ "LightLevel", "LightLevel", "4/5/4" ],
             "@id": "4_5_4"
         },
@@ -35,7 +53,7 @@
             "name": "Temperature",
             "writable": false,
             "unit": "C",
-            "valueType": "knx:DPT_VALUE",
+            "valueType": "knx:DPT_FLOAT",
             "hrefs": [ "Temperature", "Temperature", "4/6/1" ],
             "@id": "4_6_1"
         },

@@ -1,6 +1,10 @@
 package ethz.ganeshr.wot.test;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +24,7 @@ import de.thingweb.thing.Property;
 import de.thingweb.thing.Thing;
 import ethz.ganeshr.wot.test.BACnet.BACnetChannel;
 import ethz.ganeshr.wot.test.BACnet.BACnetChannelParam;
+import ethz.ganeshr.wot.test.BACnet.BACnetDiscoveryHandler;
 import ethz.ganeshr.wot.test.KNX.KNXChannel;
 
 public class ServerMain {
@@ -32,7 +37,7 @@ public class ServerMain {
 	public static void main(String[] args) throws Exception {
 		String bacip = null;
 		int bacport = 47808, httpport = 8080, coapport = 5683;
-		long lifetime = 6000;
+		long lifetime = 600;
 
 		if (args.length > 0) {
 			int index = 0;
@@ -115,9 +120,23 @@ public class ServerMain {
 		channels.add(bacnetChannel);
 		channels.add(knxChannel);
 	}
+	
+	private void registerTestTD(){
+	    try {
+			ClassLoader classLoader = ServerMain.class.getClassLoader();
+			URL fileURL = classLoader.getResource("test.jsonld");	
+		    Path path = Paths.get(fileURL.getPath().substring(1));
+			byte[] data = Files.readAllBytes(path);
+			repo.addTD("https://example.com/things", 600, data);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	public void start() throws Exception {
 		ServientBuilder.start();
+		registerTestTD();
 		for (ChannelBase channel : channels) {
 			channel.addThingFoundCallback((l) -> {
 				List<Thing> things = (List<Thing>) l;
@@ -133,8 +152,8 @@ public class ServerMain {
 						attachHandler(channel, (ServedThing) thingIfc);
 
 						try {
-							String handle = repo.addTD(thing.getMetadata().get("@id"), lifetime, ThingDescriptionParser.toBytes(thing));
-							log.info("Registered under " + handle + " for " + lifetime + " s");
+							//String handle = repo.addTD(thing.getMetadata().get("@id"), lifetime, ThingDescriptionParser.toBytes(thing));
+							//log.info("Registered under " + handle + " for " + lifetime + " s");
 						} catch (Exception e) {
 							log.error("Error during TD Repo registration: " + e.getMessage());
 						}

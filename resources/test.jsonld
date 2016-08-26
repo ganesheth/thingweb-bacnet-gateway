@@ -1,0 +1,10 @@
+{
+    "@context": {
+		"BA": "http://n.ethz.ch/student/ganeshr/ontologies/ba_ont.owl#",
+		"ex": "https://example.com/things/"
+    },
+	"name":"test",
+	"@type":"BA:Room",
+	"encodings":"JSON",
+	"@id":"ex:test_td"
+}

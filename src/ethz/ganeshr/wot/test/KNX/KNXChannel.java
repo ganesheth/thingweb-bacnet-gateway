@@ -41,11 +41,15 @@ import tuwien.auto.calimero.knxnetip.servicetype.SearchResponse;
 import tuwien.auto.calimero.link.KNXNetworkLink;
 import tuwien.auto.calimero.link.KNXNetworkLinkIP;
 import tuwien.auto.calimero.link.medium.TPSettings;
+import tuwien.auto.calimero.process.ProcessCommunicationBase;
 import tuwien.auto.calimero.process.ProcessCommunicator;
 import tuwien.auto.calimero.process.ProcessCommunicatorImpl;
 import tuwien.auto.calimero.process.ProcessEvent;
 import tuwien.auto.calimero.process.ProcessListener;
 import tuwien.auto.calimero.Util;
+import tuwien.auto.calimero.datapoint.Datapoint;
+import tuwien.auto.calimero.datapoint.StateDP;
+import tuwien.auto.calimero.dptxlator.DPTXlator8BitUnsigned;
 
 public class KNXChannel extends ChannelBase {
 	
@@ -209,13 +213,20 @@ public class KNXChannel extends ChannelBase {
 				node.put("value", result);
 				return node.toString();
 			}
-			if(property.getValueType().contains("DPT_VALUE")){
-				float result = pc.readFloat(grpAddr);
+			if(property.getValueType().contains("DPT_FLOAT")){
+				float result = pc.readFloat(grpAddr);				
 				node.put("value", result);
 				return node.toString();
 			}
+			if(property.getValueType().contains("DPT_UINT")){
+				Datapoint dp = new StateDP(grpAddr, "test");
+				String str = pc.read(dp);
+				int result = Integer.parseUnsignedInt(str, 16);
+				node.put("value", result);
+				return node.toString();
+			}			
 			return new RuntimeException("Cannot find KNX datatype to write");
-		}catch (Exception e){
+		}catch (Exception e){			
 			return new RuntimeException(e.getMessage());
 		}
 	}
@@ -230,17 +241,22 @@ public class KNXChannel extends ChannelBase {
 			ObjectNode responseNode = mapper.createObjectNode();
 			responseNode.put("result", "changed");
 			if(property.getValueType().contains("DPT_BOOL")){
-				if(!node.isBoolean())
+				if(!node.get("value").isBoolean())
 					return new RuntimeException("Payload is not a boolean value. Expected {\"value\":<boolean>}");
-				boolean val = node.asBoolean();
+				boolean val = node.get("value").asBoolean();
 				pc.write(grpAddr, val);
 				return responseNode.toString();
 			}
-			if(property.getValueType().contains("DPT_VALUE")){
-				double val = node.get("value").asDouble();
-				pc.write(grpAddr, (int)val);
+			if(property.getValueType().contains("DPT_FLOAT")){
+				float val = (float)node.get("value").asDouble();
+				pc.write(grpAddr, val);
 				return responseNode.toString();
-			}	
+			}
+			if(property.getValueType().contains("DPT_UINT")){
+				int val = node.get("value").asInt();
+				pc.write(grpAddr, val, ProcessCommunicationBase.SCALING);
+				return responseNode.toString();
+			}			
 			return new RuntimeException("Cannot find KNX datatype to write");
 		}catch (Exception e){
 			return new RuntimeException(e.getMessage());
