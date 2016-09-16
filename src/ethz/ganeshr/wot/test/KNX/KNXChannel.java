@@ -57,11 +57,16 @@ public class KNXChannel extends ChannelBase {
 	private ProcessCommunicator pc;
 	private KNXNetworkLink link;	
 	private List<Thing> mDiscoveredThings = new ArrayList<Thing>();
+	private String mAdapter = null;
+	
+	public KNXChannel(String adapter){
+		mAdapter = adapter;
+	}
 	
 	@Override
 	public void open() throws Exception
 	{
-		link = new KNXNetworkLinkIP(KNXNetworkLinkIP.TUNNELING, new InetSocketAddress(InetAddress.getByName("192.168.0.102"), 0),
+		link = new KNXNetworkLinkIP(KNXNetworkLinkIP.TUNNELING, new InetSocketAddress(InetAddress.getByName(mAdapter), 0),
 			getServer(), false, TPSettings.TP1);
 		pc = new ProcessCommunicatorImpl(link);
 		pc.setResponseTimeout(5);

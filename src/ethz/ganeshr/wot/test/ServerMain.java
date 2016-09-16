@@ -36,7 +36,7 @@ public class ServerMain {
 
 	public static void main(String[] args) throws Exception {
 		String bacip = null;
-		int bacport = 47808, httpport = 8080, coapport = 5683;
+		int bacport = 47808, httpport = 80, coapport = 5683;
 		long lifetime = 600;
 
 		if (args.length > 0) {
@@ -45,7 +45,7 @@ public class ServerMain {
 				String arg = args[index];
 				if ("-usage".equals(arg) || "-help".equals(arg) || "-h".equals(arg) || "-?".equals(arg)) {
 					printUsage();
-				} else if ("-bacip".equals(arg)) {
+				} else if ("-adapter".equals(arg)) {
 					bacip = args[index + 1];
 				} else if ("-bacport".equals(arg)) {
 					bacport = Integer.parseInt(args[index + 1]);
@@ -83,8 +83,8 @@ public class ServerMain {
 		System.out.println("SYNOPSIS");
 		System.out.println("	" + ServerMain.class.getSimpleName() + " [-bacip ADDRESS] [-bacport PORT] [-httpport PORT]");
 		System.out.println("OPTIONS");
-		System.out.println("	-bacip ADDRESS");
-		System.out.println("		Bind the BACnet client to a specific host IP address given by ADDRESS .");
+		System.out.println("	-adapter ADDRESS");
+		System.out.println("		Bind the client to a specific host IP address given by ADDRESS .");
 		System.out.println("	-bacport PORT");
 		System.out.println("		Listen on UDP port PORT (default is 47808).");
 		System.out.println("	-httpport PORT");
@@ -114,11 +114,12 @@ public class ServerMain {
 			bacnetChannel = new BACnetChannel();
 		} else {
 			bacnetChannel = new BACnetChannel(new BACnetChannelParam(bacnetAdapterIpAddr, bacnetPort));
-		}
+			knxChannel = new KNXChannel(bacnetAdapterIpAddr);
+		}	
 		
-		knxChannel = new KNXChannel();
 		channels.add(bacnetChannel);
-		channels.add(knxChannel);
+		if(knxChannel != null)
+			channels.add(knxChannel);
 	}
 	
 	private void registerTestTD(){
@@ -136,7 +137,6 @@ public class ServerMain {
 
 	public void start() throws Exception {
 		ServientBuilder.start();
-		registerTestTD();
 		for (ChannelBase channel : channels) {
 			channel.addThingFoundCallback((l) -> {
 				List<Thing> things = (List<Thing>) l;
@@ -166,9 +166,9 @@ public class ServerMain {
 			});
 
 			channel.open();
-			channel.discoverAsync(false);
+			channel.discoverAsync(true);
 		}
-		bacnetChannel.discoverFromFile(tdfile);
+		//bacnetChannel.discoverFromFile(tdfile);
 		// bacnetChannel.discoverFromFile("room_h110_compliant_with_comments.jsonld");
 		knxChannel.discoverFromFile("knx_1.jsonld");
 	}

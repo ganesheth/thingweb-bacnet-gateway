@@ -191,16 +191,27 @@ public class BACnetDiscoveryHandler {
 		List<PropertyTypeDefinition> properties =  ObjectProperties.getPropertyTypeDefinitions(oid.getObjectType());
 		
 		Thing thing = new Thing(objectName);
+		String lastPartName = objectName;
+		if(objectName.contains("/")){
+			String[] parts = objectName.split("/");
+			if(parts.length > 0)
+				lastPartName = parts[parts.length - 1];
+		}
+		lastPartName = lastPartName.replace(" ", "_");
+		
 		thing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_URIS, uri, uri);
-		thing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_CONTEXT, "BACnet:http://n.ethz.ch/student/ganeshr/bacnet/bacnettypes.json");
+		thing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_CONTEXT, "{\"BACnet\":\"http://www.manasaa.com/ontologies/bacnet/bacnettypes.json\"}");
+		thing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_CONTEXT, "{\"BA\":\"http://www.manasaa.com/ontologies/ba/ba_ont.owl\"}");
 		int deviceInstance = device.getInstanceNumber();
 		int typeId = oid.getObjectType().intValue();
 		int instanceNumber = oid.getInstanceNumber();
 		
 		String id = String.format("%d_%s", deviceInstance, oid.getIDSTring());		
 		thing.getMetadata().add("@id", id);
-		String objectType = "BACnet:" + oid.getObjectType().toString().replace(" ", "");
-		thing.getMetadata().add("@type", oid.getObjectType().toString());
+		String objectType = "\"BACnet:" + oid.getObjectType().toString().replace(" ", "") + "\"";
+		String semanticType = "\"BA:" + lastPartName + "\"";
+		thing.getMetadata().add("@type", objectType);
+		thing.getMetadata().add("@type", semanticType);
 		//thing.getMetadata().add("associations", "{\"href\":\"device\",\"rt\":\"parent\"}", "{\"href\":\"device\",\"rt\":\"parent\"}");
 		thing.getMetadata().add(ThingMetadata.METADATA_ELEMENT_ENCODINGS, "JSON");
 
